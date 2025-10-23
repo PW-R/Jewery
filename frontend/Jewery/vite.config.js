@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite'      // ✅ you MUST import defineConfig
 import react from '@vitejs/plugin-react'
 
-// ✅ Replace 'PW-R' and 'Jewery' with your actual GitHub username and repo name
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/Jewery/', // 👈 important! matches your repo name
+  base: '/Jewery/'       // 👈 important for GitHub Pages
 })
