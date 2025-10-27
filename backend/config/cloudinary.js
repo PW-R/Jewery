@@ -1,24 +1,23 @@
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+// config/cloudinary.js
+import { v2 as cloudinaryLib } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 // Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // from Cloudinary dashboard
+cloudinaryLib.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Multer Storage for uploading images
+// Multer storage
 const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
+  cloudinary: cloudinaryLib,
   params: {
-    folder: 'jewelry_products',  // Folder in Cloudinary
+    folder: 'jewelry_products',
     allowed_formats: ['jpg', 'jpeg', 'png'],
     transformation: [{ width: 800, height: 800, crop: 'limit' }]
   }
 });
 
-module.exports = {
-  cloudinary,
-  storage
-};
+// Export default object
+export default { cloudinary: cloudinaryLib, storage };
