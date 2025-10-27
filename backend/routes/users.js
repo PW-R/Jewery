@@ -8,6 +8,17 @@ import multer from 'multer';
 const upload = multer({ storage: cloudinaryConfig.storage });
 const router = express.Router();
 
+// get all users
+router.get('/', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // === REGISTER ===
 router.post('/register', async (req, res) => {
   try {
@@ -79,6 +90,15 @@ router.post('/login', async (req, res) => {
   }
 });
 
+//update user
+router.put('/update/:id', async (req, res) => {
+  
+});
+
+//delete user
+router.delete('/delete/:id', async (req, res) => {
+
+  })
 
 
 export default router;
