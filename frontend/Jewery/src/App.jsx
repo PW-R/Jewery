@@ -17,6 +17,10 @@ function App() {
         </a>
       </div>
       <h1>Vite + React</h1>
+
+      <div className="h-screen flex items-center justify-center bg-blue-500 text-white text-4xl font-bold">
+      Tailwind is working!
+    </div>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
