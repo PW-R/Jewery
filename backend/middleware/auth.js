@@ -1,7 +1,6 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
 const authenticate = (req, res, next) => {
-  // รับ token จาก header Authorization
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer token
 
@@ -18,4 +17,4 @@ const authenticate = (req, res, next) => {
   }
 };
 
-module.exports = authenticate;
+export default authenticate;

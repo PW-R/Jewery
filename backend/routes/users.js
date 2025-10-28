@@ -4,11 +4,12 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cloudinaryConfig from '../config/cloudinary.js';
 import multer from 'multer';
+import  authenticate  from '../middleware/auth.js';
 
 const upload = multer({ storage: cloudinaryConfig.storage });
 const router = express.Router();
 
-// get all users
+// === GET ALL USERS ===
 router.get('/', async (req, res) => {
   try {
     const users = await User.find();
@@ -90,15 +91,40 @@ router.post('/login', async (req, res) => {
   }
 });
 
-//update user
-router.put('/update/:id', async (req, res) => {
-  
+// === UPDATE USER ===
+router.put('/update/:id',authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // ตัวอย่าง: ตรวจสอบว่าผู้ใช้ใน token ตรงกับ id ที่จะอัปเดตไหม
+    if (req.user.id !== id) {
+      return res.status(403).json({ message: 'You can update only your own account' });
+    }
+
+    const updates = req.body;
+    const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
+
+    res.json({ message: 'User updated successfully', user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 //delete user
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/delete/:id', authenticate, async (req, res) => {
+ try {
+    const { id } = req.params;
 
-  })
+    if (req.user.id !== id) {
+      return res.status(403).json({ message: 'You can delete only your own account' });
+    }
+
+    await User.findByIdAndDelete(id);
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 
 export default router;
