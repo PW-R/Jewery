@@ -1,14 +1,15 @@
-// models/Product.js
 import mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String },
-  price: { type: Number, required: true, min: 0 },
-  stock: { type: Number, required: true, min: 0 },
-  category: { type: String },
-  images: [{ type: String }] // URLs from Cloudinary
+  code: { type: String, required: true, unique: true }, // รหัสสินค้า
+  name: { type: String, required: true },               // ชื่อสินค้า
+  images: [{ type: String }],                           // รูปสินค้า (Cloudinary URLs)
+  description: { type: String },                        // คำอธิบายสินค้า
+  category: { type: String },                            // ข้อมูลประเภทสินค้า
+  price: { type: Number, required: true },             // ราคา
+  material: { type: String },                           // วัตถุดิบที่ทำจาก
+  weight: { type: Number },                             // น้ำหนัก
+  stock: { type: Number, default: 0 }                  // จำนวนสินค้าคงคลัง
 }, { timestamps: true });
 
-const Product = mongoose.model('Product', productSchema);
-export default Product;
+export default mongoose.model('Product', productSchema);
