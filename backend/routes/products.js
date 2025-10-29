@@ -1,13 +1,13 @@
 import express from 'express';
-import {
-  getProducts,
-  getProductById,
-  createProduct,
-  updateProduct,
-  deleteProduct
+import multer from 'multer';
+import { 
+  getProducts, 
+  getProductById, 
+  createProduct, 
+  updateProduct, 
+  deleteProduct 
 } from '../controllers/productController.js';
 import authenticate from '../middleware/auth.js';
-import multer from 'multer';
 import cloudinaryConfig from '../config/cloudinary.js';
 
 const router = express.Router();
@@ -16,13 +16,13 @@ const upload = multer({ storage: cloudinaryConfig.storage });
 // === GET ALL PRODUCTS ===
 router.get('/', getProducts);
 
-// === GET SINGLE PRODUCT BY ID ===
+// === GET SINGLE PRODUCT ===
 router.get('/:id', getProductById);
 
-// === CREATE NEW PRODUCT === (authenticated + file upload)
+// === CREATE NEW PRODUCT === (authenticated + images)
 router.post('/', authenticate, upload.array('images', 5), createProduct);
 
-// === UPDATE PRODUCT === (authenticated + file upload)
+// === UPDATE PRODUCT === (authenticated + optional images)
 router.put('/:id', authenticate, upload.array('images', 5), updateProduct);
 
 // === DELETE PRODUCT === (authenticated)

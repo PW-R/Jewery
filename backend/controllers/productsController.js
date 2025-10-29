@@ -33,7 +33,7 @@ export const createProduct = async (req, res) => {
   try {
     const { name, description, price, stock, category } = req.body;
 
-    // Handle uploaded images
+    // Cloudinary images URLs
     const images = req.files ? req.files.map(file => file.path) : [];
 
     const newProduct = new Product({
@@ -46,6 +46,7 @@ export const createProduct = async (req, res) => {
     });
 
     await newProduct.save();
+
     res.status(201).json({ message: 'Product created successfully', product: newProduct });
   } catch (err) {
     console.error(err);
@@ -59,10 +60,9 @@ export const updateProduct = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    // Handle new images if uploaded
+    // Add new images if uploaded
     if (req.files && req.files.length > 0) {
-      const uploadedImages = req.files.map(file => file.path);
-      updates.images = uploadedImages;
+      updates.images = req.files.map(file => file.path);
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updates, { new: true });
