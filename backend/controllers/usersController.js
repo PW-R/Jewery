@@ -1,0 +1,107 @@
+import User from '../models/User.js';
+import jwt from 'jsonwebtoken';
+
+// === GET ALL USERS ===
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// === REGISTER ===
+export const registerUser = async (req, res) => {
+  try {
+    const { title, firstName, lastName, age, email, password, phone } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: 'Email already registered' });
+
+    // Create new user
+    const newUser = new User({ title, firstName, lastName, age, email, password, phone });
+    await newUser.save();
+
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || 'Server error' });
+  }
+};
+
+// === LOGIN ===
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+
+    // Check password
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
+
+    // Generate JWT token
+    const payload = { id: user._id, email: user.email };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    res.json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user._id,
+        title: user.title,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        age: user.age
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || 'Server error' });
+  }
+};
+
+// === UPDATE USER ===
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if the user in token matches the user being updated
+    if (req.user.id !== id) {
+      return res.status(403).json({ message: 'You can update only your own account' });
+    }
+
+    const updates = req.body;
+    const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
+
+    res.json({ message: 'User updated successfully', user: updatedUser });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || 'Server error' });
+  }
+};
+
+// === DELETE USER ===
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if the user in token matches the user being deleted
+    if (req.user.id !== id) {
+      return res.status(403).json({ message: 'You can delete only your own account' });
+    }
+
+    await User.findByIdAndDelete(id);
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || 'Server error' });
+  }
+};
