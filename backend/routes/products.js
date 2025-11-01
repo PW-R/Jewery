@@ -6,7 +6,7 @@ import {
   createProduct, 
   updateProduct, 
   deleteProduct 
-} from '../controllers/productController.js';
+} from '../controllers/productsController.js';
 import authenticate from '../middleware/auth.js';
 import cloudinaryConfig from '../config/cloudinary.js';
 

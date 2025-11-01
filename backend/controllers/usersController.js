@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
+
 // === GET ALL USERS ===
 export const getAllUsers = async (req, res) => {
   try {

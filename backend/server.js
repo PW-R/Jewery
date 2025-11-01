@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 // Routes
 import userRoutes from './routes/users.js';
 import productRoutes from './routes/products.js';
-import clicksRoutes from './routes/clicks.js';
+;
 
 // DB connection
 import connectDB from './config/db.js';
@@ -21,7 +21,7 @@ app.use(express.json()); // parse JSON bodies
 // === ROUTES ===
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/clicks', clicksRoutes);
+// app.use('/api/clicks', clicksRoutes);
 
 // === CONNECT TO MONGODB ===
 connectDB();
