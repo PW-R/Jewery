@@ -189,26 +189,26 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    // ตัวอย่างเรียก backend
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password }), // ✅ ไม่มี title
       });
       const data = await res.json();
       if (res.ok) {
+        localStorage.setItem("token", data.token);
         setIsLoggedIn(true);
         setIsUserPanelOpen(false);
       } else {
         alert(data.message);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
-  return (
+ return (
     <div className="space-y-4">
       <input
         type="email"
@@ -236,18 +236,23 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
 
 // --- Register Form Component ---
 function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
-  const [name, setName] = useState("");
+  const [title, setTitle] = useState("Mr.");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
 
   const handleRegister = async () => {
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ title, firstName, lastName, age, email, password, phone }),
       });
       const data = await res.json();
+
       if (res.ok) {
         setIsLoggedIn(true);
         setIsUserPanelOpen(false);
@@ -259,14 +264,38 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
     }
   };
 
-  return (
+     return (
     <div className="space-y-4">
+      <select
+        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      >
+        <option>Mr.</option>
+        <option>Mrs.</option>
+        <option>Ms.</option>
+        <option>Other</option>
+      </select>
       <input
         type="text"
-        placeholder="Full Name"
+        placeholder="First Name"
         className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={firstName}
+        onChange={(e) => setFirstName(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Last Name"
+        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        value={lastName}
+        onChange={(e) => setLastName(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Age"
+        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        value={age}
+        onChange={(e) => setAge(e.target.value)}
       />
       <input
         type="email"
@@ -281,6 +310,13 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Phone Number"
+        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
       />
       <button
         onClick={handleRegister}
