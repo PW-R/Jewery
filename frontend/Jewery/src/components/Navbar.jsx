@@ -190,10 +190,10 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("/api/users/login", {
+      const res = await fetch("http://localhost:5000/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }), // ✅ ไม่มี title
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -246,7 +246,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
 
   const handleRegister = async () => {
     try {
-      const res = await fetch("/api/users/register", {
+      const res = await fetch("http://localhost:5000/api/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, firstName, lastName, age, email, password, phone }),
@@ -328,7 +328,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
   );
 }
 
-// --- User Info Component ---
+// --- User Info Component **ยังไม่ได้ทำ ล็อกอินแล้วเจอหน้านี้ ---
 function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
   return (
     <div className="space-y-4 mt-6 font-sans">
