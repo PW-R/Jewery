@@ -1,18 +1,25 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useState } from "react"; 
+//----imports Routes----//
 import Home from "./pages/Home";
-
+import Navbar from "./components/Navbar";
 
 function App() {
-  return (
-<Router basename="/Jewery">
-      <Routes>
-        {/* Home page */}
-        <Route path="/" element={<Home />} />
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-        {/* Auth pages */}
-       
-      </Routes>
+  return (
+    <Router basename="/Jewery">
+      <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      <div className="pt-16">
+        <Routes>
+          {/* Home page */}
+          <Route path="/" element={<Home />} />
+         
+
+          {/* Auth pages */}
+        </Routes>
+      </div>
     </Router>
   );
 }
