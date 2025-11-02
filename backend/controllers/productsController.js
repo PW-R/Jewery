@@ -1,13 +1,29 @@
 import Product from '../models/Product.js';
 
-// === GET ALL PRODUCTS ===
+// === GET ALL PRODUCTS (optional filter by category) ===
 export const getProducts = async (req, res) => {
+  const { category } = req.query;
+
   try {
-    const products = await Product.find();
+    const query = category ? { category } : {};
+    const products = await Product.find(query);
     res.json(products);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error("❌ Error in getProducts:", err);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// === GET PRODUCTS BY CATEGORY PARAM ===
+export const getProductsByCategory = async (req, res) => {
+  const { category } = req.params;
+
+  try {
+    const products = await Product.find({ category });
+    res.json(products);
+  } catch (err) {
+    console.error("❌ Error in getProductsByCategory:", err);
+    res.status(500).json({ message: "Server Error" });
   }
 };
 

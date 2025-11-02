@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { 
   getProducts, 
+  getProductsByCategory,
   getProductById, 
   createProduct, 
   updateProduct, 
@@ -15,7 +16,8 @@ const upload = multer({ storage: cloudinaryConfig.storage });
 
 // === GET ALL PRODUCTS ===
 router.get('/', getProducts);
-
+// === GET PRODUCTS BY CATEGORY ===
+router.get("/category/:category", getProductsByCategory);
 // === GET SINGLE PRODUCT ===
 router.get('/:id', getProductById);
 

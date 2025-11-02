@@ -5,6 +5,9 @@ import { useState } from "react";
 import AdminDashboard from "./pages/AdminDashboard";
 import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
+import Necklacespage from "./pages/Necklaces";
+
+
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -17,8 +20,13 @@ function App() {
           {/* Home page */}
           <Route path="/" element={<Home />} />
 
+
           {/* Admin pages */}
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
+         
+         {/* หน้าแสดงสินค้าจ้า */}
+         <Route path="/jewelry/necklaces" element={<Necklacespage />} />
 
           {/* Auth pages */}
         </Routes>
