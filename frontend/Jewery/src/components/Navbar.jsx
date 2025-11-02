@@ -24,7 +24,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
       name: "JEWELRY",
       path: "/jewelry",
       subMenu: [
-        { name: "Necklaces", path: "#" },
+        { name: "Necklaces", path: "/jewelry/necklaces" },
         { name: "Bracelets", path: "#" },
         { name: "Rings", path: "#" },
         { name: "Earrings", path: "#" },
@@ -53,7 +53,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#4E3332] text-[#D2979B] relative">
+    <div>
       {/* --- Top Bar --- */}
       <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-center z-30 ">
         {/* Left: sidebar toggle */}

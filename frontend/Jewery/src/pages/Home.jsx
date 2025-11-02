@@ -22,8 +22,8 @@ export default function Home() {
     { name: "CONTACT US", subMenu: [] }];
 
   return (
-    <div className="min-h-screen bg-[#4E3332] text-white relative">
-     
+    <div >
+      <h1 className="text-4xl font-bold text-center mt-10">Welcome to the Jewelry Store</h1>
     </div>
         
   );

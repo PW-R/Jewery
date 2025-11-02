@@ -4,6 +4,9 @@ import { useState } from "react";
 //----imports Routes----//
 import Home from "./pages/Home";
 import Navbar from "./components/Navbar";
+import Necklacespage from "./pages/Necklaces";
+
+
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -16,6 +19,9 @@ function App() {
           {/* Home page */}
           <Route path="/" element={<Home />} />
          
+         {/* หน้าแสดงสินค้าจ้า */}
+         <Route path="/jewelry/necklaces" element={<Necklacespage />} />
+
 
           {/* Auth pages */}
         </Routes>
