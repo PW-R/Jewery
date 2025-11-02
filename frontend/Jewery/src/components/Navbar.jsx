@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { GoPersonFill } from "react-icons/go";
+import { useNavigate } from "react-router-dom";
 
 function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -187,6 +188,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
 function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
@@ -200,6 +202,14 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         localStorage.setItem("token", data.token);
         setIsLoggedIn(true);
         setIsUserPanelOpen(false);
+
+        // console.log("Login response user:", data.user);
+        if (data.user.role === "admin") {
+          // console.log("Redirecting to admin dashboard");
+          navigate("/admin-dashboard");
+        } else {
+          navigate("/");
+        }
       } else {
         alert(data.message);
       }
@@ -208,7 +218,7 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
     }
   };
 
- return (
+  return (
     <div className="space-y-4">
       <input
         type="email"
@@ -249,7 +259,15 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       const res = await fetch("http://localhost:5000/api/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, firstName, lastName, age, email, password, phone }),
+        body: JSON.stringify({
+          title,
+          firstName,
+          lastName,
+          age,
+          email,
+          password,
+          phone,
+        }),
       });
       const data = await res.json();
 
@@ -264,7 +282,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
     }
   };
 
-     return (
+  return (
     <div className="space-y-4">
       <select
         className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
@@ -330,21 +348,27 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
 
 // --- User Info Component **ยังไม่ได้ทำ ล็อกอินแล้วเจอหน้านี้ ---
 function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setIsUserPanelOpen(false);
+    localStorage.removeItem("token"); // ลบ token ออกด้วย
+    navigate("/"); // ไปหน้า Home
+  };
+
   return (
     <div className="space-y-4 mt-6 font-sans">
       <h2 className="text-2xl font-bold mb-4 text-[#915858]">User Info</h2>
       <p className="text-lg font-medium">
-        Name: {userInfo?.name || "John Doe"}
+        Name: {userInfo?.firstName} {userInfo?.lastName}
       </p>
       <p className="text-lg font-medium">
-        Email: {userInfo?.email || "john@example.com"}
+        Email: {userInfo?.email}
       </p>
       <button
         className="w-full bg-[#915858] text-[#FFD7D7] py-3 rounded-lg font-bold"
-        onClick={() => {
-          setIsLoggedIn(false);
-          setIsUserPanelOpen(false);
-        }}
+        onClick={handleLogout}
       >
         Logout
       </button>

@@ -23,7 +23,8 @@ export const registerUser = async (req, res) => {
     if (existingUser) return res.status(400).json({ message: 'Email already registered' });
 
     // Create new user
-    const newUser = new User({ title, firstName, lastName, age, email, password, phone });
+    const newUser = new User({ title, firstName, lastName, age, email, password, phone,
+      role: "user" });
     await newUser.save();
 
     res.status(201).json({ message: 'User registered successfully' });
@@ -37,18 +38,20 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('Login attempt:', email, password); // log ตรวจสอบ
 
-    // Find user
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+    if (!user) {
+      console.log('User not found');
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
 
-    // Check password
     const isMatch = await user.comparePassword(password);
+    console.log('Password match:', isMatch);
+
     if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
-    // Generate JWT token
-    const payload = { id: user._id, email: user.email };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     res.json({
       message: 'Login successful',
@@ -60,7 +63,8 @@ export const loginUser = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         phone: user.phone,
-        age: user.age
+        age: user.age,
+        role: user.role 
       }
     });
   } catch (err) {
@@ -68,6 +72,7 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: err.message || 'Server error' });
   }
 };
+
 
 // === UPDATE USER ===
 export const updateUser = async (req, res) => {
