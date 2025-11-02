@@ -11,14 +11,32 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeTab, setActiveTab] = useState("login");
   //   ขอข้อมูลผู้ใช้ที่loginอยู่
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetch("/api/user/me") //รอเปลี่ยนของจริงจ้าพี่ๆ
-        .then((res) => res.json())
-        .then((data) => setUserInfo(data))
-        .catch((err) => console.log(err));
+useEffect(() => {
+  if (isLoggedIn) {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+
+    if (!token || !userId) {
+      console.log("No userId or token found, cannot fetch user data");
+      return;
     }
-  }, [isLoggedIn]);
+
+    fetch(`http://localhost:5000/api/users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch user data");
+        return res.json();
+      })
+      .then(data => setUserInfo(data))
+      .catch(err => console.log(err));
+  }
+}, [isLoggedIn]);
+
+
 
   const menuItems = [
     {
@@ -200,6 +218,7 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", data.user.id);
         setIsLoggedIn(true);
         setIsUserPanelOpen(false);
 
@@ -354,6 +373,7 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
     setIsLoggedIn(false);
     setIsUserPanelOpen(false);
     localStorage.removeItem("token"); // ลบ token ออกด้วย
+    localStorage.removeItem("userId");
     navigate("/"); // ไปหน้า Home
   };
 
@@ -361,11 +381,17 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
     <div className="space-y-4 mt-6 font-sans">
       <h2 className="text-2xl font-bold mb-4 text-[#915858]">User Info</h2>
       <p className="text-lg font-medium">
-        Name: {userInfo?.firstName} {userInfo?.lastName}
+        Name: {userInfo?.title} {userInfo?.firstName} {userInfo?.lastName}
       </p>
       <p className="text-lg font-medium">
         Email: {userInfo?.email}
+      </p >
+      <p className="text-lg font-medium">
+        Phone: {userInfo?.phone}
       </p>
+       <p className="text-lg font-medium">
+        Age: {userInfo?.age}
+       </p>
       <button
         className="w-full bg-[#915858] text-[#FFD7D7] py-3 rounded-lg font-bold"
         onClick={handleLogout}
