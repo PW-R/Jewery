@@ -1,4 +1,5 @@
 import Product from '../models/Product.js';
+import cloudinary from '../config/cloudinary.js';
 
 // === GET ALL PRODUCTS (optional filter by category) ===
 export const getProducts = async (req, res) => {

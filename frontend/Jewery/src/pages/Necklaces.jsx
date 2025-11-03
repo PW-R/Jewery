@@ -1,5 +1,6 @@
 // src/pages/Necklaces.jsx
 import { useEffect, useState } from "react";
+import { ThreeDot } from "react-loading-indicators";
 import ProductCard from "../components/ProductCard";
 
 function NecklacesPage() {
@@ -23,7 +24,14 @@ function NecklacesPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen text-[#915858]">
-        กำลังโหลดสินค้า...
+        <ThreeDot
+        variant="bounce"
+        color="#915858"
+        size="medium"
+        text=""         
+        textColor="#915858"
+      />
+      
       </div>
     );
   }

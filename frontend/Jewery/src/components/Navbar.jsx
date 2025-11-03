@@ -223,7 +223,7 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         // console.log("Login response user:", data.user);
         if (data.user.role === "admin") {
           // console.log("Redirecting to admin dashboard");
-          navigate("/admin-dashboard");
+          navigate("/admin/dashboard");
         } else {
           navigate("/");
         }
