@@ -1,38 +1,46 @@
 // src/App.jsx
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { useState } from "react"; 
-//----imports Routes----//
-import AdminDashboard from "./pages/AdminDashboard";
-import Home from "./pages/Home";
+//----Components----//
 import Navbar from "./components/Navbar";
-import Necklacespage from "./pages/Necklaces";
+import AdminLayout from "./components/AdminLayout";
 
+//----Pages (ลูกค้า)----//
+import Home from "./pages/Home";
+import Necklacespage from "./pages/Necklaces";
+import AdminDashboard from "./pages/AdminDashboard";
+//----Pages (แอดมิน)----//
 
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
-    <Router basename="/Jewery">
-      <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-      <div className="pt-16">
+    <>
+      {/*  Navbar ฝั่งลูกค้า แสดงบนทุกหน้า */}
+      {!isAdminRoute && (
+        <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+      )}
+
+      <div className={!isAdminRoute ? "pt-16" : ""}>
         <Routes>
-          {/* Home page */}
+          {/*  ฝั่งลูกค้า */}
           <Route path="/" element={<Home />} />
+          <Route path="/jewelry/necklaces" element={<Necklacespage />} />
 
-
-          {/* Admin pages */}
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-
-         
-         {/* หน้าแสดงสินค้าจ้า */}
-         <Route path="/jewelry/necklaces" element={<Necklacespage />} />
-
-          {/* Auth pages */}
+          {/*  ฝั่งแอดมิน */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+           
+          </Route>
         </Routes>
       </div>
-    </Router>
+    </>
   );
 }
 
 export default App;
+
+
