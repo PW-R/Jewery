@@ -8,8 +8,9 @@ import AdminLayout from "./components/AdminLayout";
 //----Pages (ลูกค้า)----//
 import Home from "./pages/Home";
 import Necklacespage from "./pages/Necklaces";
-import AdminDashboard from "./pages/AdminDashboard";
 //----Pages (แอดมิน)----//
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminStock from "./pages/AdminStock";
 
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
           {/*  ฝั่งแอดมิน */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="stock" element={<AdminStock />} />
            
           </Route>
         </Routes>

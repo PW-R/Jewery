@@ -7,7 +7,7 @@ function AdminNavbar() {
 
   const menuItems = [
     { name: "Dashboard", path: "#", icon: <FaHome /> },
-    { name: "Stock Management", path: "#", icon: <FaBox /> },
+    { name: "Stock Management", path: "/admin/stock", icon: <FaBox /> },
     { name: "User Management", path: "#", icon: <FaUsers /> },
     { name: "Activity Logs", path: "#", icon: <FaChartLine /> },
     { name: "Setting", path: "#", icon: <FaCog /> },
