@@ -11,32 +11,30 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeTab, setActiveTab] = useState("login");
   //   ขอข้อมูลผู้ใช้ที่loginอยู่
-useEffect(() => {
-  if (isLoggedIn) {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
+  useEffect(() => {
+    if (isLoggedIn) {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
 
-    if (!token || !userId) {
-      console.log("No userId or token found, cannot fetch user data");
-      return;
-    }
+      if (!token || !userId) {
+        console.log("No userId or token found, cannot fetch user data");
+        return;
+      }
 
-    fetch(`http://localhost:5000/api/users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch user data");
-        return res.json();
+      fetch(`http://localhost:5000/api/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       })
-      .then(data => setUserInfo(data))
-      .catch(err => console.log(err));
-  }
-}, [isLoggedIn]);
-
-
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch user data");
+          return res.json();
+        })
+        .then((data) => setUserInfo(data))
+        .catch((err) => console.log(err));
+    }
+  }, [isLoggedIn]);
 
   const menuItems = [
     {
@@ -150,7 +148,7 @@ useEffect(() => {
           ✖
         </div>
 
-        <div className="p-6 mt-16 font-sans">
+        <div className="p-6 mt-16 font-sans ">
           {!isLoggedIn ? (
             <>
               {/* Login/Register Tabs */}
@@ -239,26 +237,41 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
 
   return (
     <div className="space-y-4">
+      <label className="block text-sm mb-1">Email *</label>
       <input
         type="email"
-        placeholder="Email"
-        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        placeholder="Email ID"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
+      <label className="block text-sm mt-6 mb-1">Password *</label>
       <input
         type="password"
         placeholder="Password"
-        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
       <button
         onClick={handleLogin}
-        className="w-full bg-[#915858] text-[#FFD7D7] py-3 rounded-lg font-bold"
+        className="w-full border border-[#6B4A4A] text-[#6B4A4A] mt-8 py-3 tracking-wide uppercase font-medium hover:bg-[#6B4A4A] hover:text-[#FCE4E4] transition"
       >
-        Login
+        Submit
       </button>
+      {/* <p className="text-center mt-3 text-sm underline cursor-pointer">
+        Forgot your password?
+      </p> */}
+      <div className="text-center mt-10">
+        <h3 className="text-lg mb-2 font-medium">Any Questions?</h3>
+        <p className="text-sm text-[#6B4A4A]/80 mb-4">
+          Our client advisors would be delighted to assist you
+        </p>
+        <div className="flex justify-center items-center gap-2 text-[#6B4A4A]">
+          <span>📧</span>
+          <span className="underline cursor-pointer">Contact Us</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -302,65 +315,101 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
   };
 
   return (
-    <div className="space-y-4">
-      <select
-        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      >
-        <option>Mr.</option>
-        <option>Mrs.</option>
-        <option>Ms.</option>
-        <option>Other</option>
-      </select>
+    <div className="space-y-4 ">
+      <div className="flex gap-4 mb-4 ">
+        <label>
+          <input
+            type="radio"
+            value="Mr."
+            checked={title === "Mr."}
+            onChange={(e) => setTitle(e.target.value)}
+            className="mr-2"
+          />
+          Mr.
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="Mrs."
+            checked={title === "Mrs."}
+            onChange={(e) => setTitle(e.target.value)}
+            className="mr-2"
+          />
+          Mrs.
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="Ms."
+            checked={title === "Ms."}
+            onChange={(e) => setTitle(e.target.value)}
+            className="mr-2"
+          />
+          Ms.
+        </label>
+      </div>
+      <label className="block text-sm mb-1">First Name *</label>
       <input
         type="text"
-        placeholder="First Name"
-        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        placeholder="Your first name"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
         value={firstName}
         onChange={(e) => setFirstName(e.target.value)}
       />
+
+      <label className="block text-sm mt-6 mb-1">Last Name *</label>
       <input
         type="text"
-        placeholder="Last Name"
-        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        placeholder="Your last name"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
         value={lastName}
         onChange={(e) => setLastName(e.target.value)}
       />
+
+      <label className="block text-sm mt-6 mb-1">Age *</label>
       <input
         type="number"
-        placeholder="Age"
-        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        placeholder="ํYour Age"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
         value={age}
         onChange={(e) => setAge(e.target.value)}
       />
+
+      <label className="block text-sm mt-6 mb-1">Email *</label>
       <input
         type="email"
-        placeholder="Email"
-        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        placeholder="Your email address"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
+
+      <label className="block text-sm mt-6 mb-1">Password *</label>
       <input
         type="password"
         placeholder="Password"
-        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
+
+      <label className="block text-sm mt-6 mb-1">Phone Number *</label>
       <input
         type="text"
-        placeholder="Phone Number"
-        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+        placeholder="Your Phone Number"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
       />
+
       <button
         onClick={handleRegister}
-        className="w-full bg-[#915858] text-[#FFD7D7] py-3 rounded-lg font-bold"
+        className="w-full border border-[#6B4A4A] text-[#6B4A4A] mt-8 py-3 tracking-wide uppercase font-medium hover:bg-[#6B4A4A] hover:text-[#FCE4E4] transition"
       >
-        Register
+        Create an Account
       </button>
+
+    
     </div>
   );
 }
@@ -379,22 +428,36 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
 
   return (
     <div className="space-y-4 mt-6 font-sans">
-      <h2 className="text-2xl font-bold mb-4 text-[#915858]">User Info</h2>
-      <p className="text-lg font-medium">
-        Name: {userInfo?.title} {userInfo?.firstName} {userInfo?.lastName}
-      </p>
-      <p className="text-lg font-medium">
-        Email: {userInfo?.email}
-      </p >
-      <p className="text-lg font-medium">
-        Phone: {userInfo?.phone}
-      </p>
-       <p className="text-lg font-medium">
-        Age: {userInfo?.age}
-       </p>
+      <h2 className="text-3xl font-semibold mb-8 text-center text-[#5a3a3a]">
+        My Account
+      </h2>
+      <div className="bg-[#f9dcdc] rounded-2xl shadow-md p-6 space-y-4">
+        <div>
+          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">Name</p>
+          <p className="text-lg font-medium">
+            {userInfo?.title} {userInfo?.firstName} {userInfo?.lastName}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">Email</p>
+          <p className="text-lg font-medium">{userInfo?.email}</p>
+        </div>
+
+        <div>
+          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">Phone</p>
+          <p className="text-lg font-medium">{userInfo?.phone}</p>
+        </div>
+
+        <div>
+          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">Age</p>
+          <p className="text-lg font-medium">{userInfo?.age}</p>
+        </div>
+      </div>
+
       <button
-        className="w-full bg-[#915858] text-[#FFD7D7] py-3 rounded-lg font-bold"
         onClick={handleLogout}
+        className="w-full mt-8 bg-[#915858] text-[#FFD7D7] py-3 rounded-lg font-semibold hover:bg-[#7a4d4d] transition-all"
       >
         Logout
       </button>
