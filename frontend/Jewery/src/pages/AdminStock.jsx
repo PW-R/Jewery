@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // src/pages/AdminStock.jsx
 import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrash, FaPlus, FaTimes } from "react-icons/fa";
@@ -369,3 +370,4 @@ const AdminStock = () => {
 };
 
 export default AdminStock;
+=======
