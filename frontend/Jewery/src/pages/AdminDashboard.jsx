@@ -1,6 +1,6 @@
 // src/pages/AdminDashboard.jsx
-import React from "react";
-import { FaUsers, FaDollarSign, FaChartLine } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { FaUsers, FaChartLine, FaUserCheck } from "react-icons/fa";
 import {
   LineChart,
   Line,
@@ -9,181 +9,182 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
   Legend,
   AreaChart,
   Area,
+  BarChart,
+  Bar,
 } from "recharts";
 
+import { getUsers } from "../api/userApi";
+import { getAllClicks } from "../api/clickApi";
+
 const AdminDashboard = () => {
-  // Dummy data
-  const monthlyVisits = 12345;
-  const revenue = 23450;
-  const dailyVisits = 1234;
+  const [users, setUsers] = useState([]);
+  const [clicks, setClicks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const visitsData = [
-    { day: "1", visits: 400 },
-    { day: "2", visits: 700 },
-    { day: "3", visits: 500 },
-    { day: "4", visits: 900 },
-    { day: "5", visits: 800 },
-    { day: "6", visits: 1200 },
-    { day: "7", visits: 1000 },
-  ];
+  const COLORS = ["#B87A7D", "#DA9FA3", "#E7B6B9", "#F0CCCE", "#D2979B"];
 
-  const revenueData = [
-    { day: "Mon", revenue: 4000 },
-    { day: "Tue", revenue: 3000 },
-    { day: "Wed", revenue: 5000 },
-    { day: "Thu", revenue: 7000 },
-    { day: "Fri", revenue: 6000 },
-    { day: "Sat", revenue: 8000 },
-    { day: "Sun", revenue: 9000 },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [usersRes, clicksRes] = await Promise.all([
+          getUsers(),
+          getAllClicks(),
+        ]);
+        setUsers(usersRes.data || []);
+        setClicks(clicksRes.data || []);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const comboData = [
-    { day: "Mon", visits: 120, revenue: 4000 },
-    { day: "Tue", visits: 210, revenue: 3000 },
-    { day: "Wed", visits: 150, revenue: 5000 },
-    { day: "Thu", visits: 260, revenue: 7000 },
-    { day: "Fri", visits: 200, revenue: 6000 },
-    { day: "Sat", visits: 300, revenue: 8000 },
-    { day: "Sun", visits: 280, revenue: 9000 },
-  ];
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-screen text-[#B87A7D] text-xl">
+        Loading dashboard data...
+      </div>
+    );
 
-  const trafficSourceData = [
-    { name: "Direct", value: 400 },
-    { name: "Referral", value: 300 },
-    { name: "Social", value: 300 },
-    { name: "Email", value: 200 },
-  ];
+  // === Metrics ===
+  const totalUsers = users.length;
 
-  const userGrowthData = [
-    { month: "Jan", users: 200 },
-    { month: "Feb", users: 400 },
-    { month: "Mar", users: 600 },
-    { month: "Apr", users: 800 },
-    { month: "May", users: 1000 },
-    { month: "Jun", users: 1200 },
-  ];
+  // Treat clicks as "visits" for admin-friendly term
+  const totalVisits = clicks.length;
 
-  const COLORS = ["#B87A7D", "#DA9FA3", "#E7B6B9", "#FOCCCE", "#D2979B"];
+  // === Visits by Day ===
+  const dailyVisitsMap = clicks.reduce((acc, click) => {
+    const day = new Date(click.timestamp).toLocaleDateString("en-US", {
+      weekday: "short",
+    });
+    acc[day] = (acc[day] || 0) + 1;
+    return acc;
+  }, {});
+  const dailyVisitsData = Object.keys(dailyVisitsMap).map((day) => ({
+    day,
+    visits: dailyVisitsMap[day],
+  }));
+
+  // === Visits by Category ===
+  const categoryMap = clicks.reduce((acc, click) => {
+    const cat = click.category || "Other";
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {});
+  const categoryData = Object.keys(categoryMap).map((name) => ({
+    name,
+    value: categoryMap[name],
+  }));
+
+  // === User Growth ===
+  const userGrowthMap = users.reduce((acc, user) => {
+    const month = new Date(user.createdAt).toLocaleString("en-US", {
+      month: "short",
+    });
+    acc[month] = (acc[month] || 0) + 1;
+    return acc;
+  }, {});
+  const userGrowthData = Object.keys(userGrowthMap).map((month) => ({
+    month,
+    users: userGrowthMap[month],
+  }));
+
+  // === Top Visitors ===
+  const visitsByUserMap = {};
+  clicks.forEach((click) => {
+    const user = click.userId?.firstName
+      ? `${click.userId.firstName} ${click.userId.lastName}`
+      : `User ${click.userId?._id?.slice(-5) || "N/A"}`;
+    visitsByUserMap[user] = (visitsByUserMap[user] || 0) + 1;
+  });
+  const topVisitors = Object.keys(visitsByUserMap)
+    .map((name) => ({ name, visits: visitsByUserMap[name] }))
+    .sort((a, b) => b.visits - a.visits)
+    .slice(0, 5); // top 5 users
 
   return (
     <div className="min-h-screen bg-white p-8">
       {/* Header */}
       <header className="mb-8">
         <h1 className="text-4xl font-bold text-[#B87A7D]">Admin Dashboard</h1>
-        <p className="text-[#DA9FA3] mt-2">Welcome, Admin!</p>
+        <p className="text-[#DA9FA3] mt-2">
+          Overview of Users and Visit Analytics
+        </p>
       </header>
 
-      {/* Metric Cards */}
+      {/* === METRICS === */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-[#FOCCCE]/20 shadow rounded p-6 flex items-center gap-4 transition hover:scale-105">
+        {/* Total Users */}
+        <div className="bg-[#F0CCCE]/20 shadow rounded p-6 flex items-center gap-4 hover:scale-105 transition">
           <div className="text-[#B87A7D] text-3xl">
             <FaUsers />
           </div>
           <div>
-            <h2 className="text-[#D2979B] font-medium mb-1">Monthly Visits</h2>
+            <h2 className="text-[#D2979B] font-medium mb-1">Total Users</h2>
             <p className="text-2xl font-bold text-[#B87A7D]">
-              {monthlyVisits.toLocaleString()}
+              {totalUsers.toLocaleString()}
             </p>
           </div>
         </div>
 
-        <div className="bg-[#FOCCCE]/20 shadow rounded p-6 flex items-center gap-4 transition hover:scale-105">
+        {/* Total Visits */}
+        <div className="bg-[#F0CCCE]/20 shadow rounded p-6 flex items-center gap-4 hover:scale-105 transition">
           <div className="text-[#DA9FA3] text-3xl">
-            <FaDollarSign />
+            <FaUserCheck />
           </div>
           <div>
-            <h2 className="text-[#E7B6B9] font-medium mb-1">Revenue</h2>
+            <h2 className="text-[#E7B6B9] font-medium mb-1">Total Visits</h2>
             <p className="text-2xl font-bold text-[#DA9FA3]">
-              ${revenue.toLocaleString()}
+              {totalVisits.toLocaleString()}
             </p>
           </div>
         </div>
 
-        <div className="bg-[#FOCCCE]/20 shadow rounded p-6 flex items-center gap-4 transition hover:scale-105">
+        {/* Daily Visits */}
+        <div className="bg-[#F0CCCE]/20 shadow rounded p-6 flex items-center gap-4 hover:scale-105 transition">
           <div className="text-[#E7B6B9] text-3xl">
             <FaChartLine />
           </div>
           <div>
             <h2 className="text-[#D2979B] font-medium mb-1">Daily Visits</h2>
             <p className="text-2xl font-bold text-[#E7B6B9]">
-              {dailyVisits.toLocaleString()}
+              {dailyVisitsData.reduce((a, b) => a + b.visits, 0)}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Charts Section */}
+      {/* === CHARTS === */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Monthly Visits Line Chart */}
-        <div className="bg-[#FOCCCE]/10 shadow rounded p-6">
-          <h2 className="text-[#D2979B] font-medium mb-4">Monthly Visits</h2>
+        {/* Weekly Visits Trend */}
+        <div className="bg-[#F0CCCE]/10 shadow rounded p-6">
+          <h2 className="text-[#D2979B] font-medium mb-4">Weekly Visit Trend</h2>
           <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={visitsData}>
+            <LineChart data={dailyVisitsData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E7B6B9" />
               <XAxis dataKey="day" stroke="#B87A7D" />
               <YAxis stroke="#B87A7D" />
               <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="visits"
-                stroke="#B87A7D"
-                strokeWidth={3}
-              />
+              <Line type="monotone" dataKey="visits" stroke="#B87A7D" strokeWidth={3} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Revenue Bar Chart */}
-        <div className="bg-[#FOCCCE]/10 shadow rounded p-6">
-          <h2 className="text-[#D2979B] font-medium mb-4">Revenue This Week</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E7B6B9" />
-              <XAxis dataKey="day" stroke="#B87A7D" />
-              <YAxis stroke="#B87A7D" />
-              <Tooltip />
-              <Bar dataKey="revenue" fill="#DA9FA3" barSize={20} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* Combo Chart: Visits vs Revenue */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-[#FOCCCE]/10 shadow rounded p-6">
-          <h2 className="text-[#D2979B] font-medium mb-4">Daily Visits vs Revenue</h2>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={comboData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E7B6B9" />
-              <XAxis dataKey="day" stroke="#B87A7D" />
-              <YAxis stroke="#B87A7D" />
-              <Tooltip />
-              <Bar dataKey="revenue" fill="#DA9FA3" />
-              <Line
-                type="monotone"
-                dataKey="visits"
-                stroke="#B87A7D"
-                strokeWidth={3}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Traffic Source Pie Chart */}
-        <div className="bg-[#FOCCCE]/10 shadow rounded p-6">
-          <h2 className="text-[#D2979B] font-medium mb-4">Traffic Sources</h2>
+        {/* Visits by Category */}
+        <div className="bg-[#F0CCCE]/10 shadow rounded p-6">
+          <h2 className="text-[#D2979B] font-medium mb-4">Visits by Category</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
-                data={trafficSourceData}
+                data={categoryData}
                 dataKey="value"
                 nameKey="name"
                 cx="50%"
@@ -191,8 +192,11 @@ const AdminDashboard = () => {
                 outerRadius={80}
                 label
               >
-                {trafficSourceData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {categoryData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
               <Legend />
@@ -202,23 +206,35 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Area Chart: User Growth */}
-      <div className="bg-[#FOCCCE]/10 shadow rounded p-6">
-        <h2 className="text-[#D2979B] font-medium mb-4">User Growth Trend</h2>
-        <ResponsiveContainer width="100%" height={250}>
-          <AreaChart data={userGrowthData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E7B6B9" />
-            <XAxis dataKey="month" stroke="#B87A7D" />
-            <YAxis stroke="#B87A7D" />
-            <Tooltip />
-            <Area
-              type="monotone"
-              dataKey="users"
-              stroke="#DA9FA3"
-              fill="#FOCCCE"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      {/* === USER GROWTH & TOP VISITORS === */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* User Growth */}
+        <div className="bg-[#F0CCCE]/10 shadow rounded p-6">
+          <h2 className="text-[#D2979B] font-medium mb-4">User Growth Trend</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <AreaChart data={userGrowthData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E7B6B9" />
+              <XAxis dataKey="month" stroke="#B87A7D" />
+              <YAxis stroke="#B87A7D" />
+              <Tooltip />
+              <Area type="monotone" dataKey="users" stroke="#DA9FA3" fill="#F0CCCE" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Top Visitors */}
+        <div className="bg-[#F0CCCE]/10 shadow rounded p-6">
+          <h2 className="text-[#D2979B] font-medium mb-4">Top Active Users</h2>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={topVisitors} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#E7B6B9" />
+              <XAxis type="number" stroke="#B87A7D" />
+              <YAxis dataKey="name" type="category" stroke="#B87A7D" />
+              <Tooltip />
+              <Bar dataKey="visits" fill="#B87A7D" barSize={20} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

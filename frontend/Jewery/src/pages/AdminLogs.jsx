@@ -16,56 +16,102 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { getAllClicks, getUserClicks } from "../api/clickApi.js"; // ✅ use existing APIs
 
 const AdminLogs = () => {
-  const COLORS = ["#B87A7D", "#DA9FA3", "#E7B6B9", "#FOCCCE", "#D2979B"];
-
-  // Dummy logs
-  const dummyLogs = [
-    { id: 1, user: "John Doe", action: "Created Product", product: "Necklace A1", date: "2025-11-01 10:23" },
-    { id: 2, user: "Jane Smith", action: "Deleted Product", product: "Ring B3", date: "2025-11-02 14:12" },
-    { id: 3, user: "Admin", action: "Updated User", product: "N/A", date: "2025-11-02 16:45" },
-    { id: 4, user: "Alice", action: "Created Product", product: "Bracelet C2", date: "2025-11-03 09:10" },
-  ];
+  const COLORS = ["#B87A7D", "#DA9FA3", "#E7B6B9", "#F0CCCE", "#D2979B"];
 
   const [logs, setLogs] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [userAnalytics, setUserAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => setLogs(dummyLogs), []);
+  // === FETCH ALL CLICKS ===
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const res = await getAllClicks();
+        const clicks = res.data;
 
+        // Normalize for table
+        const formatted = clicks.map((c, index) => ({
+          id: index + 1,
+          user: c.userId
+            ? `${c.userId.firstName || ""} ${c.userId.lastName || ""}`.trim()
+            : `User ${c.userId?._id?.slice(-5) || "N/A"}`,
+          userId: c.userId?._id,
+          action: "Clicked Product",
+          product: c.productId?.name || `Product ${c.productId?._id?.slice(-5) || "N/A"}`,
+          category: c.category || "Unknown",
+          date: new Date(c.createdAt).toLocaleString(),
+        }));
+
+        setLogs(formatted);
+      } catch (err) {
+        console.error("Error loading clicks:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
+  }, []);
+
+  // === FILTER LOGS ===
   const filteredLogs = logs.filter(
-    log =>
+    (log) =>
       log.user.toLowerCase().includes(search.toLowerCase()) ||
       log.action.toLowerCase().includes(search.toLowerCase()) ||
       log.product.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Dummy analytics for user
-  const userAnalytics = selectedUser
-    ? {
-        dailyVisits: [
-          { day: "Mon", visits: Math.floor(Math.random() * 10 + 5) },
-          { day: "Tue", visits: Math.floor(Math.random() * 10 + 5) },
-          { day: "Wed", visits: Math.floor(Math.random() * 10 + 5) },
-          { day: "Thu", visits: Math.floor(Math.random() * 10 + 5) },
-          { day: "Fri", visits: Math.floor(Math.random() * 10 + 5) },
-          { day: "Sat", visits: Math.floor(Math.random() * 10 + 5) },
-          { day: "Sun", visits: Math.floor(Math.random() * 10 + 5) },
-        ],
-        favoriteCategories: [
-          { name: "Necklaces", value: Math.floor(Math.random() * 10 + 1) },
-          { name: "Rings", value: Math.floor(Math.random() * 10 + 1) },
-          { name: "Bracelets", value: Math.floor(Math.random() * 10 + 1) },
-        ],
-        spending: [
-          { week: "Week 1", amount: Math.floor(Math.random() * 200 + 50) },
-          { week: "Week 2", amount: Math.floor(Math.random() * 200 + 50) },
-          { week: "Week 3", amount: Math.floor(Math.random() * 200 + 50) },
-          { week: "Week 4", amount: Math.floor(Math.random() * 200 + 50) },
-        ],
-      }
-    : null;
+  // === FETCH USER ANALYTICS ===
+  const loadUserAnalytics = async (user) => {
+    setSelectedUser(user);
+    setUserAnalytics(null);
+
+    try {
+      const res = await getUserClicks(user.userId);
+      const clicks = res.data;
+
+      // ---- ANALYTICS CALCULATIONS ----
+      // 1️⃣ Daily visits
+      const dailyMap = {};
+      clicks.forEach((click) => {
+        const day = new Date(click.createdAt).toLocaleDateString("en-US", { weekday: "short" });
+        dailyMap[day] = (dailyMap[day] || 0) + 1;
+      });
+      const dailyVisits = Object.keys(dailyMap).map((day) => ({ day, visits: dailyMap[day] }));
+
+      // 2️⃣ Favorite categories
+      const catMap = {};
+      clicks.forEach((click) => {
+        const cat = click.category || "Other";
+        catMap[cat] = (catMap[cat] || 0) + 1;
+      });
+      const favoriteCategories = Object.keys(catMap).map((name) => ({ name, value: catMap[name] }));
+
+      // 3️⃣ Product frequency
+      const prodMap = {};
+      clicks.forEach((click) => {
+        const prod = click.productId?.name || click.productId?._id || "Unknown";
+        prodMap[prod] = (prodMap[prod] || 0) + 1;
+      });
+      const productClicks = Object.keys(prodMap).map((name) => ({ name, clicks: prodMap[name] }));
+
+      setUserAnalytics({ dailyVisits, favoriteCategories, productClicks });
+    } catch (err) {
+      console.error("Error loading user analytics:", err);
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-[#B87A7D]">
+        Loading activity logs...
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-white p-8">
@@ -81,38 +127,42 @@ const AdminLogs = () => {
           type="text"
           placeholder="Search by user, action, or product..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           className="border p-2 rounded flex-1"
         />
         <FaSearch className="text-[#B87A7D]" />
       </div>
 
       {/* Logs Table */}
-      <div className="bg-[#FOCCCE]/10 shadow rounded overflow-x-auto">
+      <div className="bg-[#F0CCCE]/10 shadow rounded overflow-x-auto">
         <table className="min-w-full text-left">
           <thead className="bg-[#E7B6B9]/30">
             <tr>
               <th className="p-3">User</th>
               <th className="p-3">Action</th>
               <th className="p-3">Product</th>
+              <th className="p-3">Category</th>
               <th className="p-3">Date & Time</th>
             </tr>
           </thead>
           <tbody>
             {filteredLogs.length === 0 ? (
               <tr>
-                <td colSpan="4" className="p-4 text-center text-gray-500">No logs found.</td>
+                <td colSpan="5" className="p-4 text-center text-gray-500">
+                  No logs found.
+                </td>
               </tr>
             ) : (
-              filteredLogs.map(log => (
+              filteredLogs.map((log) => (
                 <tr
                   key={log.id}
                   className="border-b hover:bg-[#DA9FA3]/10 cursor-pointer transition"
-                  onClick={() => setSelectedUser(log.user)}
+                  onClick={() => loadUserAnalytics(log)}
                 >
                   <td className="p-3 text-[#B87A7D] font-medium">{log.user}</td>
                   <td className="p-3 text-[#DA9FA3]">{log.action}</td>
                   <td className="p-3 text-[#E7B6B9]">{log.product}</td>
+                  <td className="p-3 text-[#E7B6B9]">{log.category}</td>
                   <td className="p-3 text-[#D2979B]">{log.date}</td>
                 </tr>
               ))
@@ -122,7 +172,7 @@ const AdminLogs = () => {
       </div>
 
       {/* User Inspector Modal */}
-      {selectedUser && (
+      {selectedUser && userAnalytics && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-end z-50">
           <div className="bg-white w-full md:w-2/3 h-full p-6 overflow-y-auto relative">
             <button
@@ -131,7 +181,9 @@ const AdminLogs = () => {
             >
               <FaTimes />
             </button>
-            <h2 className="text-3xl font-bold text-[#B87A7D] mb-4">User: {selectedUser}</h2>
+            <h2 className="text-3xl font-bold text-[#B87A7D] mb-4">
+              User: {selectedUser.user}
+            </h2>
             <p className="text-[#DA9FA3] mb-6">Analytics & activity overview</p>
 
             {/* Daily Visits */}
@@ -173,16 +225,16 @@ const AdminLogs = () => {
               </ResponsiveContainer>
             </div>
 
-            {/* Spending */}
+            {/* Product Clicks */}
             <div className="mb-6">
-              <h3 className="text-[#E7B6B9] font-medium mb-2">Spending (per week)</h3>
+              <h3 className="text-[#E7B6B9] font-medium mb-2">Most Clicked Products</h3>
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={userAnalytics.spending}>
+                <BarChart data={userAnalytics.productClicks}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
+                  <XAxis dataKey="name" hide />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="amount" fill="#B87A7D" barSize={20} />
+                  <Bar dataKey="clicks" fill="#B87A7D" barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
