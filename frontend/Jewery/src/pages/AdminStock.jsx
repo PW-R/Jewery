@@ -1,8 +1,8 @@
-
 // src/pages/AdminStock.jsx
 import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrash, FaPlus, FaTimes } from "react-icons/fa";
 import {
+  getNextCode,
   getProducts,
   createProduct,
   updateProduct,
@@ -49,9 +49,11 @@ const AdminStock = () => {
 
   // --- Delete product
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    if (!window.confirm("Are you sure you want to delete this product?"))
+      return;
     try {
-      await deleteProduct(id);
+      const token = localStorage.getItem("token"); 
+      await deleteProduct(id, token);
       setProducts(products.filter((p) => p._id !== id));
     } catch (err) {
       console.error("Error deleting product:", err);
@@ -96,6 +98,10 @@ const AdminStock = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+     if (name === "category" && !editProduct) {
+    fetchNextCode(value);
+  }
   };
 
   // --- Handle image selection
@@ -104,11 +110,21 @@ const AdminStock = () => {
     setFormData((prev) => ({ ...prev, images: files }));
     setImagePreview(files.map((file) => URL.createObjectURL(file)));
   };
+  //-------next code--------
+  const fetchNextCode = async (category) => {
+    try {
+      const res = await getNextCode(category);
+      setFormData((prev) => ({ ...prev, code: res.data.nextCode }));
+    } catch (err) {
+      console.error("Error fetching next code:", err);
+    }
+  };
 
   // --- Submit form for add/edit
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem("token"); 
       const data = new FormData();
       for (let key in formData) {
         if (key === "images") {
@@ -119,12 +135,14 @@ const AdminStock = () => {
       }
 
       if (editProduct) {
-        const res = await updateProduct(editProduct._id, data);
+        const res = await updateProduct(editProduct._id, data, token);
         setProducts(
-          products.map((p) => (p._id === editProduct._id ? res.data.product : p))
+          products.map((p) =>
+            p._id === editProduct._id ? res.data.product : p
+          )
         );
       } else {
-        const res = await createProduct(data);
+        const res = await createProduct(data, token);
         setProducts([res.data.product, ...products]);
       }
 
@@ -212,7 +230,10 @@ const AdminStock = () => {
                     p.code.toLowerCase().includes(search.toLowerCase())
                 )
                 .map((product) => (
-                  <tr key={product._id} className="border-b hover:bg-[#FOCCCE]/30">
+                  <tr
+                    key={product._id}
+                    className="border-b hover:bg-[#FOCCCE]/30"
+                  >
                     <td className="p-3">
                       {product.images && product.images[0] ? (
                         <img
@@ -229,7 +250,9 @@ const AdminStock = () => {
                     <td className="p-3 text-[#B87A7D]">{product.code}</td>
                     <td className="p-3 text-[#DA9FA3]">{product.name}</td>
                     <td className="p-3 text-[#E7B6B9]">{product.category}</td>
-                    <td className="p-3 text-[#D2979B]">${product.price.toFixed(2)}</td>
+                    <td className="p-3 text-[#D2979B]">
+                      ${product.price.toFixed(2)}
+                    </td>
                     <td className="p-3 text-[#B87A7D]">{product.stock}</td>
                     <td className="p-3 flex gap-2">
                       <button
@@ -274,7 +297,7 @@ const AdminStock = () => {
                   onChange={handleChange}
                   placeholder="Code"
                   className="border p-2 rounded w-full border-[#D2979B]"
-                  required
+                  readOnly
                 />
                 <input
                   name="name"
@@ -370,4 +393,3 @@ const AdminStock = () => {
 };
 
 export default AdminStock;
-

@@ -1,6 +1,41 @@
 import Product from '../models/Product.js';
 import cloudinary from '../config/cloudinary.js';
 
+//สร้างรหัสสินค้าอัตโนมัติตามหมวดหมู่
+export const getNextCode = async (req, res) => {
+  try {
+    const { category } = req.query;
+    if (!category) {
+      return res.status(400).json({ message: "Category is required" });
+    }
+
+    // ✅ สร้าง prefix ตาม category
+    let prefix = "PRD";
+    const cat = category.toLowerCase();
+    if (cat.includes("necklace")) prefix = "NCK";
+    else if (cat.includes("ring")) prefix = "RNG";
+    else if (cat.includes("bracelet")) prefix = "BRC";
+
+    // ✅ หา product ล่าสุดใน category นั้น
+    const lastProduct = await Product.findOne({ category })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    let nextNumber = 1;
+    if (lastProduct && lastProduct.code) {
+      const match = lastProduct.code.match(/\d+$/);
+      if (match) nextNumber = parseInt(match[0]) + 1;
+    }
+
+    const nextCode = `${prefix}${String(nextNumber).padStart(3, "0")}`;
+    res.json({ nextCode });
+  } catch (err) {
+    console.error("Error generating next code:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 // === GET ALL PRODUCTS (optional filter by category) ===
 export const getProducts = async (req, res) => {
   const { category } = req.query;
