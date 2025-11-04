@@ -45,15 +45,15 @@ const AdminUsers = () => {
 
   // --- Delete user
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+  if (!window.confirm("Are you sure you want to delete this user?")) return;
 
-    try {
-      await deleteUser(id, "dummy-token"); // replace with real token if needed
-      setUsers(users.filter((u) => u._id !== id));
-    } catch (err) {
-      console.error("Error deleting user:", err);
-    }
-  };
+  try {
+    await deleteUser(id); // ✅ ไม่ต้องส่ง token แล้ว
+    setUsers(users.filter((u) => u._id !== id));
+  } catch (err) {
+    console.error("Error deleting user:", err);
+  }
+};
 
   // --- Open modal for add/edit
   const openModal = (user = null) => {
@@ -93,20 +93,20 @@ const AdminUsers = () => {
 
   // --- Submit form
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editUser) {
-        const res = await updateUser(editUser._id, formData, "dummy-token");
-        setUsers(users.map((u) => (u._id === editUser._id ? res.data.user : u)));
-      } else {
-        const res = await createUser(formData);
-        setUsers([res.data, ...users]);
-      }
-      setModalOpen(false);
-    } catch (err) {
-      console.error("Error saving user:", err);
+  e.preventDefault();
+  try {
+    if (editUser) {
+      const res = await updateUser(editUser._id, formData); // ✅ ไม่ต้องส่ง token แล้ว
+      setUsers(users.map((u) => (u._id === editUser._id ? res.data.user : u)));
+    } else {
+      const res = await createUser(formData);
+      setUsers([res.data, ...users]);
     }
-  };
+    setModalOpen(false);
+  } catch (err) {
+    console.error("Error saving user:", err);
+  }
+};
 
   return (
     <div className="min-h-screen p-8 bg-white text-[#B87A7D]">

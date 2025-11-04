@@ -9,7 +9,7 @@ function NecklacesPage() {
 
   useEffect(() => {
     // ดึงข้อมูลสินค้าหมวด "necklaces" จาก backend
-    fetch("http://localhost:5000/api/products?category=necklaces")
+    fetch("http://localhost:5000/api/products?category=Necklaces")
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);
@@ -39,7 +39,7 @@ function NecklacesPage() {
   // ส่งข้อมูลให้ ProductCard Template
   return (
     <ProductCard
-      category="necklaces"
+      category="Necklaces"
       products={products}
     />
   );

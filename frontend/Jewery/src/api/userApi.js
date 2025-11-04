@@ -4,7 +4,6 @@ import axios from "axios";
 const API = axios.create({
   baseURL: "http://localhost:5000/api", // matches your backend prefix
 });
-
 // --- Get all users
 export const getUsers = () => {
   return API.get("/users");
@@ -22,14 +21,14 @@ export const createUser = (userData) => {
 
 // --- Update a user (requires authentication token)
 export const updateUser = (id, userData, token) => {
-  return API.put(`/users/${id}`, userData, {
+  return API.put(`/users/update/${id}`, userData, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 // --- Delete a user (requires authentication token)
 export const deleteUser = (id, token) => {
-  return API.delete(`/users/${id}`, {
+  return API.delete(`/users/delete/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
