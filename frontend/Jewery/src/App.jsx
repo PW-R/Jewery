@@ -34,7 +34,7 @@ function App() {
           <Route path="/jewelry/necklaces" element={<Necklacespage />} />
 
           {/* ฝั่งแอดมิน */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminLayout setIsLoggedIn={setIsLoggedIn} />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="stock" element={<AdminStock />} />
             <Route path="users" element={<AdminUsers />} />

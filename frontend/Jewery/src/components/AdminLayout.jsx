@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
 import AdminNavbar from "./AdminNavbar";
 
-function AdminLayout() {
+function AdminLayout({setIsLoggedIn}) {
   return (
     <div className="flex min-h-screen bg-[#fffaf9]">
       {/* Sidebar ฝั่งแอดมิน */}
-      <AdminNavbar />
+      <AdminNavbar setIsLoggedIn={setIsLoggedIn} />
 
       {/* เนื้อหาที่เปลี่ยนตามหน้า */}
       <main className="flex-1 p-8 overflow-y-auto">

@@ -12,6 +12,11 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const [activeTab, setActiveTab] = useState("login");
   //   ขอข้อมูลผู้ใช้ที่loginอยู่
   useEffect(() => {
+     if (!isLoggedIn) {
+    setUserInfo(null); // เคลียร์ข้อมูลถ้าไม่ได้ล็อกอิน
+    return;
+  }
+
     if (isLoggedIn) {
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
@@ -34,6 +39,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
         .then((data) => setUserInfo(data))
         .catch((err) => console.log(err));
     }
+
   }, [isLoggedIn]);
 
   const menuItems = [
@@ -216,7 +222,7 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("token", data.token);
-        localStorage.setItem("userId", data.user.id);
+        localStorage.setItem("userId", data.user._id || data.user.id);
         setIsLoggedIn(true);
         setIsUserPanelOpen(false);
 
@@ -268,7 +274,6 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
           Our client advisors would be delighted to assist you
         </p>
         <div className="flex justify-center items-center gap-2 text-[#6B4A4A]">
-          <span>📧</span>
           <span className="underline cursor-pointer">Contact Us</span>
         </div>
       </div>
@@ -408,8 +413,6 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       >
         Create an Account
       </button>
-
-    
     </div>
   );
 }
@@ -419,8 +422,10 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+
     setIsLoggedIn(false);
     setIsUserPanelOpen(false);
+
     localStorage.removeItem("token"); // ลบ token ออกด้วย
     localStorage.removeItem("userId");
     navigate("/"); // ไปหน้า Home
@@ -440,12 +445,16 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
         </div>
 
         <div>
-          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">Email</p>
+          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">
+            Email
+          </p>
           <p className="text-lg font-medium">{userInfo?.email}</p>
         </div>
 
         <div>
-          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">Phone</p>
+          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">
+            Phone
+          </p>
           <p className="text-lg font-medium">{userInfo?.phone}</p>
         </div>
 
