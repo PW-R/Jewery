@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { 
+  getNextCode,
   getProducts, 
   getProductsByCategory,
   getProductById, 
@@ -13,7 +14,8 @@ import cloudinaryConfig from '../config/cloudinary.js';
 
 const router = express.Router();
 const upload = multer({ storage: cloudinaryConfig.storage });
-
+// === GET NEXT PRODUCT CODE ===
+router.get('/next-code', getNextCode);
 // === GET ALL PRODUCTS ===
 router.get('/', getProducts);
 // === GET PRODUCTS BY CATEGORY ===
