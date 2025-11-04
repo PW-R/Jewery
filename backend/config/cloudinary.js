@@ -1,19 +1,49 @@
-import { v2 as cloudinaryLib } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
+// import { v2 as cloudinaryLib } from 'cloudinary';
+// import { CloudinaryStorage } from 'multer-storage-cloudinary';
+
+// cloudinaryLib.config({
+//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//   api_key: process.env.CLOUDINARY_API_KEY,
+//   api_secret: process.env.CLOUDINARY_API_SECRET
+// });
+
+// const storage = new CloudinaryStorage({
+//   cloudinary: cloudinaryLib,
+//   params: {
+//     folder: 'jewelry_products',   // folder where images are stored
+//     allowed_formats: ['jpg', 'jpeg', 'png'],
+//     transformation: [{ width: 800, height: 800, crop: 'limit' }]
+//   }
+// });
+
+// export default { cloudinary: cloudinaryLib, storage };
+
+
+import dotenv from "dotenv";
+dotenv.config(); // ✅ โหลด .env ก่อนอ่านค่าตัวแปร
+
+import { v2 as cloudinaryLib } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+
+console.log("🌥️ Cloudinary ENV:", {
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ? "✅ Loaded" : "❌ Missing",
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? "✅ Loaded" : "❌ Missing",
+});
 
 cloudinaryLib.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinaryLib,
   params: {
-    folder: 'jewelry_products',   // folder where images are stored
-    allowed_formats: ['jpg', 'jpeg', 'png'],
-    transformation: [{ width: 800, height: 800, crop: 'limit' }]
-  }
+    folder: "jewelry_products",
+    allowed_formats: ["jpg", "jpeg", "png"],
+    transformation: [{ width: 800, height: 800, crop: "limit" }],
+  },
 });
 
 export default { cloudinary: cloudinaryLib, storage };

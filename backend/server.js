@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+dotenv.config();
 import bcrypt from "bcryptjs";
 
 // === ROUTES ===
@@ -12,14 +13,13 @@ import clickRoutes from "./routes/clicks.js"; // <-- Click tracking routes
 import connectDB from "./config/db.js";
 import User from "./models/User.js";
 
-dotenv.config();
 
 const app = express();
 
 // === MIDDLEWARE ===
 app.use(cors());
 app.use(express.json()); // Parse JSON bodies
-
+app.use(express.urlencoded({ extended: true }));
 // === ROUTES ===
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);

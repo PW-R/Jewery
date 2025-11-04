@@ -7,7 +7,8 @@ import {
   getProductById, 
   createProduct, 
   updateProduct, 
-  deleteProduct 
+  deleteProduct,
+  deleteSingleImage
 } from '../controllers/productsController.js';
 import authenticate from '../middleware/auth.js';
 import cloudinaryConfig from '../config/cloudinary.js';
@@ -31,5 +32,7 @@ router.put('/:id', authenticate, upload.array('images', 5), updateProduct);
 
 // === DELETE PRODUCT === (authenticated)
 router.delete('/:id', authenticate, deleteProduct);
+// === DELETE SINGLE IMAGE FROM PRODUCT === (authenticated)
+router.delete("/image", authenticate, deleteSingleImage);
 
 export default router;

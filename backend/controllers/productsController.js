@@ -1,5 +1,7 @@
 import Product from '../models/Product.js';
-import cloudinary from '../config/cloudinary.js';
+import cloudinaryConfig from "../config/cloudinary.js";
+const { cloudinary } = cloudinaryConfig;
+
 
 //สร้างรหัสสินค้าอัตโนมัติตามหมวดหมู่
 export const getNextCode = async (req, res) => {
@@ -83,6 +85,9 @@ export const getProductById = async (req, res) => {
 // === CREATE NEW PRODUCT ===
 export const createProduct = async (req, res) => {
   try {
+    console.log("[CREATE PRODUCT] Starting...");
+    console.log("Body:", req.body);
+    console.log("Files:", req.files);
     const { code, name, description, category, price, material, weight, stock } = req.body;
     const images = req.files ? req.files.map(file => file.path) : [];
 
@@ -144,5 +149,33 @@ export const deleteProduct = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+// === DELETE SINGLE IMAGE (Cloudinary + DB) ===
+export const deleteSingleImage = async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url) {
+      return res.status(400).json({ message: "Image URL is required" });
+    }
+
+    // ดึง public_id จาก URL เช่น jewelry_products/abc123
+    const publicId = url.split("/").slice(-2).join("/").split(".")[0];
+
+    // ลบจาก Cloudinary
+    await cloudinary.uploader.destroy(publicId);
+
+    // ลบ URL นี้ออกจาก DB ด้วย (ถ้ามีสินค้าอ้างถึง)
+    await Product.updateMany(
+      { images: url },
+      { $pull: { images: url } }
+    );
+
+    res.json({ message: "✅ Image deleted successfully" });
+  } catch (err) {
+    console.error("❌ Error deleting image:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };

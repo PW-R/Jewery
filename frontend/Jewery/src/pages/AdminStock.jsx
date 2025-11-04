@@ -1,5 +1,6 @@
 // src/pages/AdminStock.jsx
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { FaEdit, FaTrash, FaPlus, FaTimes } from "react-icons/fa";
 import {
   getNextCode,
@@ -52,7 +53,7 @@ const AdminStock = () => {
     if (!window.confirm("Are you sure you want to delete this product?"))
       return;
     try {
-      const token = localStorage.getItem("token"); 
+      const token = localStorage.getItem("token");
       await deleteProduct(id, token);
       setProducts(products.filter((p) => p._id !== id));
     } catch (err) {
@@ -99,9 +100,9 @@ const AdminStock = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-     if (name === "category" && !editProduct) {
-    fetchNextCode(value);
-  }
+    if (name === "category" && !editProduct) {
+      fetchNextCode(value);
+    }
   };
 
   // --- Handle image selection
@@ -110,6 +111,33 @@ const AdminStock = () => {
     setFormData((prev) => ({ ...prev, images: files }));
     setImagePreview(files.map((file) => URL.createObjectURL(file)));
   };
+  // --- Handle image removal
+const handleRemoveImage = async (idx, imageUrl) => {
+  // ถ้าเป็นรูปเก่าจาก Cloudinary (มี URL http)
+  if (editProduct && imageUrl.startsWith("http")) {
+    if (!window.confirm("Delete this image from Cloudinary?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete("http://localhost:5000/api/products/image", {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { url: imageUrl },
+      });
+      // เอารูปออกจาก Preview
+      setImagePreview((prev) => prev.filter((_, i) => i !== idx));
+    } catch (err) {
+      console.error("Error deleting image:", err);
+    }
+  } else {
+    // ถ้ายังไม่อัปโหลด (รูปใหม่ที่เลือกในเครื่อง)
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== idx),
+    }));
+    setImagePreview((prev) => prev.filter((_, i) => i !== idx));
+  }
+};
+
+
   //-------next code--------
   const fetchNextCode = async (category) => {
     try {
@@ -124,7 +152,7 @@ const AdminStock = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token"); 
+      const token = localStorage.getItem("token");
       const data = new FormData();
       for (let key in formData) {
         if (key === "images") {
@@ -368,12 +396,20 @@ const AdminStock = () => {
               {imagePreview.length > 0 && (
                 <div className="flex gap-2 mt-2 overflow-x-auto">
                   {imagePreview.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={img}
-                      alt="preview"
-                      className="w-20 h-20 object-cover rounded"
-                    />
+                    <div key={idx} className="relative">
+                      <img
+                        src={img}
+                        alt="preview"
+                        className="w-20 h-20 object-cover rounded"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx, img)}
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
