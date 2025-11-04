@@ -1,10 +1,27 @@
 // src/components/AdminNavbar.jsx
-import { Link, useLocation } from "react-router-dom";
-import { FaHome, FaBox, FaUsers, FaChartLine, FaCog } from "react-icons/fa";
+import { useEffect } from "react";
+import { Link, useLocation,useNavigate } from "react-router-dom";
+import { FaHome, FaBox, FaUsers, FaChartLine, FaCog, } from "react-icons/fa";
 
-function AdminNavbar() {
+function AdminNavbar({ setIsLoggedIn }) {
   const location = useLocation();
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/"); // ไม่มี token → กลับหน้า Home
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    setIsLoggedIn(false); // <-- อัปเดตสถานะหลักให้ Navbar รู้
+    navigate("/"); // กลับหน้า Home
+  };
+
+  
   const menuItems = [
     { name: "Dashboard", path: "/admin/dashboard", icon: <FaHome /> },
     { name: "Stock Management", path: "/admin/stock", icon: <FaBox /> },
@@ -35,8 +52,20 @@ function AdminNavbar() {
           </Link>
         ))}
       </nav>
+
+           <div className="p-4 border-t border-white">
+       <button
+        onClick={handleLogout}
+        className="w-full mt-8 bg-[#915858] text-[#FFD7D7] py-3 rounded-lg font-semibold hover:bg-[#7a4d4d] transition-all"
+      >
+        Logout
+      </button>
+      </div>
     </aside>
   );
-}
+
+};
+
+
 
 export default AdminNavbar;
