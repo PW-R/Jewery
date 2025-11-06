@@ -11,7 +11,17 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeTab, setActiveTab] = useState("login");
 
+
   
+
+useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  }, [setIsLoggedIn]);
+
+
   //   ขอข้อมูลผู้ใช้ที่loginอยู่
   useEffect(() => {
      if (!isLoggedIn) {
@@ -47,7 +57,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const menuItems = [
     {
       name: "JEWELRY",
-      path: "/jewelry",
+      path: "/Home",
       subMenu: [
         { name: "Necklaces", path: "/jewelry/necklaces" },
         { name: "Bracelets", path: "/jewelry/bracelets" },
@@ -55,10 +65,11 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
         { name: "Earrings", path: "/jewelry/earrings" },
       ],
     },
+    
    
     {
       name: "SERVICES",
-      path: "/services",
+      path: "/Home",
       subMenu: [
         { name: "Repair", path: "#" },
         { name: "Cleaning", path: "#" },
@@ -421,7 +432,7 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
 
     localStorage.removeItem("token"); // ลบ token ออกด้วย
     localStorage.removeItem("userId");
-    navigate("/"); // ไปหน้า Home
+    navigate("/Home"); // ไปหน้า Home
   };
 
   return (
