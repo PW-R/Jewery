@@ -7,6 +7,8 @@ import AdminLayout from "./components/AdminLayout";
 //----Pages (ลูกค้า)----//
 import Home from "./pages/Home";
 import Necklacespage from "./pages/Necklaces";
+import ProductDetailPage from "./pages/ProductDetail";
+
 
 //----Pages (แอดมิน)----//
 import AdminDashboard from "./pages/AdminDashboard";
@@ -32,6 +34,8 @@ function App() {
           {/* ฝั่งลูกค้า */}
           <Route path="/" element={<Home />} />
           <Route path="/jewelry/necklaces" element={<Necklacespage />} />
+          <Route path="/product/:productId" element={<ProductDetailPage />} />
+
 
           {/* ฝั่งแอดมิน */}
           <Route path="/admin" element={<AdminLayout setIsLoggedIn={setIsLoggedIn} />}>
