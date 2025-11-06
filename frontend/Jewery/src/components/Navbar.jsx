@@ -10,6 +10,8 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const [userInfo, setUserInfo] = useState(null);
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeTab, setActiveTab] = useState("login");
+
+  
   //   ขอข้อมูลผู้ใช้ที่loginอยู่
   useEffect(() => {
      if (!isLoggedIn) {
@@ -48,21 +50,12 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
       path: "/jewelry",
       subMenu: [
         { name: "Necklaces", path: "/jewelry/necklaces" },
-        { name: "Bracelets", path: "#" },
-        { name: "Rings", path: "#" },
-        { name: "Earrings", path: "#" },
+        { name: "Bracelets", path: "/jewelry/bracelets" },
+        { name: "Rings", path: "/jewelry/rings" },
+        { name: "Earrings", path: "/jewelry/earrings" },
       ],
     },
-    {
-      name: "STONES EXPERTISE",
-      path: "/stones",
-      subMenu: [
-        { name: "Diamonds", path: "#" },
-        { name: "Emeralds", path: "#" },
-        { name: "Rubies", path: "#" },
-        { name: "Sapphires", path: "#" },
-      ],
-    },
+   
     {
       name: "SERVICES",
       path: "/services",

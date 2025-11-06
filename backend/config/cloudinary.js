@@ -20,7 +20,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinaryLib,
   params: {
     folder: "jewelry_products",
-    allowed_formats: ["jpg", "jpeg", "png"],
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
     transformation: [{ width: 800, height: 800, crop: "limit" }],
   },
 });

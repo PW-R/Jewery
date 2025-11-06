@@ -17,6 +17,8 @@ export const getNextCode = async (req, res) => {
     if (cat.includes("necklace")) prefix = "NCK";
     else if (cat.includes("ring")) prefix = "RNG";
     else if (cat.includes("bracelet")) prefix = "BRC";
+    else if (cat.includes("earring")) prefix = "ERN";
+
 
     // ✅ หา product ล่าสุดใน category นั้น
     const lastProduct = await Product.findOne({ category })

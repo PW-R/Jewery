@@ -7,6 +7,9 @@ import AdminLayout from "./components/AdminLayout";
 //----Pages (ลูกค้า)----//
 import Home from "./pages/Home";
 import Necklacespage from "./pages/Necklaces";
+import BraceletsPage from "./pages/Bracelets";
+import RingsPage from "./pages/Rings";
+import EarringsPage from "./pages/Earrings";
 import ProductDetailPage from "./pages/ProductDetail";
 
 
@@ -34,6 +37,9 @@ function App() {
           {/* ฝั่งลูกค้า */}
           <Route path="/" element={<Home />} />
           <Route path="/jewelry/necklaces" element={<Necklacespage />} />
+          <Route path="/jewelry/bracelets" element={<BraceletsPage />} />
+          <Route path="/jewelry/rings" element={<RingsPage />} />
+          <Route path="/jewelry/earrings" element={<EarringsPage />} />
           <Route path="/product/:productId" element={<ProductDetailPage />} />
 
 

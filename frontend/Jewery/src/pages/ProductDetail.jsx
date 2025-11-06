@@ -25,7 +25,16 @@ function ProductDetailPage() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold">{product.name}</h1>
-      <img src={product.image} alt={product.name} className="my-4" />
+      <img
+        src={
+          product.images && product.images.length > 0
+            ? product.images[0]
+            : "https://res.cloudinary.com/dnd6qbufm/image/upload/v1730569000/jewelry_products/no-image.png"
+        }
+        alt={product.name}
+        className="my-4"
+      />
+
       <p className="text-lg text-gray-700">{product.description}</p>
       <p className="text-xl font-semibold mt-2">${product.price}</p>
     </div>

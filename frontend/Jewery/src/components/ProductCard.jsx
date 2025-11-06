@@ -3,7 +3,7 @@ function ProductCard({ product }) {
   if (!product) return null; // Prevent errors if product is undefined
 
   return (
-    <div className="text-center bg-[#FBE8E8] hover:bg-[#F9D9D9] transition rounded-xl p-6 shadow-sm cursor-pointer">
+    <div className="text-center   rounded-xl p-6 shadow-sm cursor-pointer">
       {/* Product Image */}
       <img
         src={

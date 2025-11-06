@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { ThreeDot } from "react-loading-indicators";
 import ProductCard from "../components/ProductCard";
 
-function NecklacesPage() {
+function EarringsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const category = "Necklaces";
+  const category = "Earrings"
+;
 
   useEffect(() => {
     fetch(`http://localhost:5000/api/products?category=${category}`)
@@ -60,4 +61,4 @@ function NecklacesPage() {
   );
 }
 
-export default NecklacesPage;
+export default EarringsPage;

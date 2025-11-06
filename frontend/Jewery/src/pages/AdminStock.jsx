@@ -220,6 +220,7 @@ const handleRemoveImage = async (idx, imageUrl) => {
           <option value="Necklaces">Necklaces</option>
           <option value="Rings">Rings</option>
           <option value="Bracelets">Bracelets</option>
+          <option value="Earrings">Earrings</option>
         </select>
       </div>
 
