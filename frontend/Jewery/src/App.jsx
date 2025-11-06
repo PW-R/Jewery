@@ -9,7 +9,6 @@ import Home from "./pages/Home";
 import Necklacespage from "./pages/Necklaces";
 import ProductDetailPage from "./pages/ProductDetail";
 
-
 //----Pages (แอดมิน)----//
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminStock from "./pages/AdminStock";
@@ -31,14 +30,19 @@ function App() {
 
       <div className={!isAdminRoute ? "pt-16" : ""}>
         <Routes>
-          {/* ฝั่งลูกค้า */}
+          {/* หน้าแรก */}
           <Route path="/" element={<Home />} />
+          <Route path="/Home" element={<Home />} />
+
+          {/* ฝั่งลูกค้า */}
           <Route path="/jewelry/necklaces" element={<Necklacespage />} />
           <Route path="/product/:productId" element={<ProductDetailPage />} />
 
-
           {/* ฝั่งแอดมิน */}
-          <Route path="/admin" element={<AdminLayout setIsLoggedIn={setIsLoggedIn} />}>
+          <Route
+            path="/admin"
+            element={<AdminLayout setIsLoggedIn={setIsLoggedIn} />}
+          >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="stock" element={<AdminStock />} />
             <Route path="users" element={<AdminUsers />} />
@@ -52,5 +56,3 @@ function App() {
 }
 
 export default App;
-
-
