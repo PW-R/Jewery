@@ -1,7 +1,6 @@
-import Product from '../models/Product.js';
+import Product from "../models/Product.js";
 import cloudinaryConfig from "../config/cloudinary.js";
 const { cloudinary } = cloudinaryConfig;
-
 
 //สร้างรหัสสินค้าอัตโนมัติตามหมวดหมู่
 export const getNextCode = async (req, res) => {
@@ -11,14 +10,15 @@ export const getNextCode = async (req, res) => {
       return res.status(400).json({ message: "Category is required" });
     }
 
-    // ✅ สร้าง prefix ตาม category
-    let prefix = "PRD";
-    const cat = category.toLowerCase();
-    if (cat.includes("necklace")) prefix = "NCK";
-    else if (cat.includes("ring")) prefix = "RNG";
-    else if (cat.includes("bracelet")) prefix = "BRC";
-    else if (cat.includes("earring")) prefix = "ERN";
+    const normalizedCategory = category.trim().toLowerCase();
 
+    let prefix = "PRD";
+
+    if (normalizedCategory.startsWith("necklace")) prefix = "NCK";
+    else if (normalizedCategory.startsWith("ring")) prefix = "RNG";
+    else if (normalizedCategory.startsWith("bracelet")) prefix = "BRC";
+    else if (normalizedCategory.startsWith("earring")) prefix = "ERN";
+    
 
     // ✅ หา product ล่าสุดใน category นั้น
     const lastProduct = await Product.findOne({ category })
@@ -38,7 +38,6 @@ export const getNextCode = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 // === GET ALL PRODUCTS (optional filter by category) ===
 export const getProducts = async (req, res) => {
@@ -74,13 +73,13 @@ export const getProductById = async (req, res) => {
     const product = await Product.findById(id);
 
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     res.json(product);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -90,8 +89,17 @@ export const createProduct = async (req, res) => {
     console.log("[CREATE PRODUCT] Starting...");
     console.log("Body:", req.body);
     console.log("Files:", req.files);
-    const { code, name, description, category, price, material, weight, stock } = req.body;
-    const images = req.files ? req.files.map(file => file.path) : [];
+    const {
+      code,
+      name,
+      description,
+      category,
+      price,
+      material,
+      weight,
+      stock,
+    } = req.body;
+    const images = req.files ? req.files.map((file) => file.path) : [];
 
     const newProduct = new Product({
       code,
@@ -102,14 +110,16 @@ export const createProduct = async (req, res) => {
       material,
       weight,
       stock,
-      images
+      images,
     });
 
     await newProduct.save();
-    res.status(201).json({ message: 'Product created successfully', product: newProduct });
+    res
+      .status(201)
+      .json({ message: "Product created successfully", product: newProduct });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -120,19 +130,24 @@ export const updateProduct = async (req, res) => {
     const updates = req.body;
 
     if (req.files && req.files.length > 0) {
-      updates.images = req.files.map(file => file.path);
+      updates.images = req.files.map((file) => file.path);
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(id, updates, { new: true });
+    const updatedProduct = await Product.findByIdAndUpdate(id, updates, {
+      new: true,
+    });
 
     if (!updatedProduct) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ message: 'Product updated successfully', product: updatedProduct });
+    res.json({
+      message: "Product updated successfully",
+      product: updatedProduct,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -144,16 +159,15 @@ export const deleteProduct = async (req, res) => {
     const deletedProduct = await Product.findByIdAndDelete(id);
 
     if (!deletedProduct) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ message: 'Product deleted successfully' });
+    res.json({ message: "Product deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // === DELETE SINGLE IMAGE (Cloudinary + DB) ===
 export const deleteSingleImage = async (req, res) => {
@@ -170,10 +184,7 @@ export const deleteSingleImage = async (req, res) => {
     await cloudinary.uploader.destroy(publicId);
 
     // ลบ URL นี้ออกจาก DB ด้วย (ถ้ามีสินค้าอ้างถึง)
-    await Product.updateMany(
-      { images: url },
-      { $pull: { images: url } }
-    );
+    await Product.updateMany({ images: url }, { $pull: { images: url } });
 
     res.json({ message: "✅ Image deleted successfully" });
   } catch (err) {

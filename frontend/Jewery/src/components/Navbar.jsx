@@ -11,23 +11,19 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeTab, setActiveTab] = useState("login");
 
-
-  
-
-useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
     }
   }, [setIsLoggedIn]);
 
-
   //   ขอข้อมูลผู้ใช้ที่loginอยู่
   useEffect(() => {
-     if (!isLoggedIn) {
-    setUserInfo(null); // เคลียร์ข้อมูลถ้าไม่ได้ล็อกอิน
-    return;
-  }
+    if (!isLoggedIn) {
+      setUserInfo(null); // เคลียร์ข้อมูลถ้าไม่ได้ล็อกอิน
+      return;
+    }
 
     if (isLoggedIn) {
       const token = localStorage.getItem("token");
@@ -51,7 +47,6 @@ useEffect(() => {
         .then((data) => setUserInfo(data))
         .catch((err) => console.log(err));
     }
-
   }, [isLoggedIn]);
 
   const menuItems = [
@@ -65,8 +60,6 @@ useEffect(() => {
         { name: "Earrings", path: "/jewelry/earrings" },
       ],
     },
-    
-   
     {
       name: "SERVICES",
       path: "/Home",
@@ -426,7 +419,6 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-
     setIsLoggedIn(false);
     setIsUserPanelOpen(false);
 
