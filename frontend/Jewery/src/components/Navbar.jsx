@@ -81,15 +81,17 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
           className="absolute left-0 top-0 h-16 w-12 flex items-center justify-center cursor-pointer"
           onMouseEnter={() => setIsSidebarOpen(true)}
         >
-          <span className="text-2xl font-bold">☰</span>
+          <span className="text-2xl font-bold text-[#674948]">☰</span>
         </div>
         {/* Center title */}
-        <h1 className="text-5xl font-light tracking-widest">LURICE</h1>
+        <h1 className="text-5xl font-light tracking-widest text-[#674948]">
+          LURICE
+        </h1>
 
         {/* Right: user icon toggle panel */}
         <div className="absolute right-4 top-0 h-16 flex items-center">
           <GoPersonFill
-            className="text-3xl text-[#D2979B]  cursor-pointer transition"
+            className="text-3xl text-[#674948]  cursor-pointer transition"
             onClick={() => setIsUserPanelOpen(!isUserPanelOpen)}
           />
         </div>
@@ -98,12 +100,14 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
       {/* --- Sidebar --- */}
       <div
         className={`fixed top-0 left-0 h-full bg-[#edb5b5] text-white
-              transition-all duration-500 ease-in-out transform shadow-[4px_0_25px_rgba(0,0,0,0.3)]
-              ${
-                isSidebarOpen
-                  ? "translate-x-0 opacity-100 w-80"
-                  : "-translate-x-full opacity-0 w-0 overflow-hidden"
-              }`}
+    z-50
+    transition-all duration-500 ease-in-out transform shadow-[4px_0_25px_rgba(0,0,0,0.3)]
+    ${
+      isSidebarOpen
+        ? "translate-x-0 opacity-100 w-80"
+        : "-translate-x-full opacity-0 w-0 overflow-hidden"
+    }
+  `}
         onMouseLeave={() => setIsSidebarOpen(false)}
       >
         <div className="mt-16 px-4 text-lg text-white ">
@@ -139,7 +143,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
       </div>
       {/* ------------------ User Panel ----------------- */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-[#FFD7D7] text-[#915858]
+        className={`fixed top-0 right-0 h-full w-96 bg-[#fce3e3] text-[#915858]
   shadow-[0_0_25px_rgba(0,0,0,0.3)] transition-transform duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)]
   transform z-50
   ${isUserPanelOpen ? "translate-x-0" : "translate-x-full"}`}
@@ -244,7 +248,7 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       <input
         type="email"
         placeholder="Email ID"
-        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]  placeholder-[#3a2a2a]/60"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
@@ -252,7 +256,7 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       <input
         type="password"
         placeholder="Password"
-        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]  placeholder-[#3a2a2a]/60"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
@@ -325,7 +329,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
             value="Mr."
             checked={title === "Mr."}
             onChange={(e) => setTitle(e.target.value)}
-            className="mr-2"
+            className="mr-2 accent-[#4d3d29b5]"
           />
           Mr.
         </label>
@@ -335,7 +339,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
             value="Mrs."
             checked={title === "Mrs."}
             onChange={(e) => setTitle(e.target.value)}
-            className="mr-2"
+            className="mr-2 accent-[#4d3d29b5]"
           />
           Mrs.
         </label>
@@ -345,7 +349,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
             value="Ms."
             checked={title === "Ms."}
             onChange={(e) => setTitle(e.target.value)}
-            className="mr-2"
+            className="mr-2 accent-[#4d3d29b5]"
           />
           Ms.
         </label>
@@ -354,7 +358,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       <input
         type="text"
         placeholder="Your first name"
-        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A] placeholder-[#3a2a2a]/60"
         value={firstName}
         onChange={(e) => setFirstName(e.target.value)}
       />
@@ -363,7 +367,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       <input
         type="text"
         placeholder="Your last name"
-        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A] placeholder-[#3a2a2a]/60"
         value={lastName}
         onChange={(e) => setLastName(e.target.value)}
       />
@@ -372,7 +376,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       <input
         type="number"
         placeholder="ํYour Age"
-        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A] placeholder-[#3a2a2a]/60"
         value={age}
         onChange={(e) => setAge(e.target.value)}
       />
@@ -381,7 +385,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       <input
         type="email"
         placeholder="Your email address"
-        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A] placeholder-[#3a2a2a]/60"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
@@ -390,7 +394,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       <input
         type="password"
         placeholder="Password"
-        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A] placeholder-[#3a2a2a]/60"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
@@ -399,7 +403,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       <input
         type="text"
         placeholder="Your Phone Number"
-        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A]"
+        className="w-full border-b border-[#6B4A4A]/40 bg-transparent px-2 py-3 focus:outline-none focus:border-[#6B4A4A] placeholder-[#3a2a2a]/60"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
       />
@@ -428,41 +432,57 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
   };
 
   return (
-    <div className="space-y-4 mt-6 font-sans">
-      <h2 className="text-3xl font-semibold mb-8 text-center text-[#5a3a3a]">
+    <div className="space-y-6 mt-8 font-sans max-w-xl mx-auto">
+      {/* Title */}
+      <h2 className="text-4xl font-semibold text-center text-[#5a3a3a] drop-shadow-sm">
         My Account
       </h2>
-      <div className="bg-[#f9dcdc] rounded-2xl shadow-md p-6 space-y-4">
-        <div>
-          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">Name</p>
-          <p className="text-lg font-medium">
+
+      {/* Card */}
+      <div>
+        {/* Name */}
+        <div className="pb-3 border-b border-[#e8bcbc]/50 mb-5">
+          <p className="text-xs text-[#8b6f6f] uppercase tracking-wider">
+            Name
+          </p>
+          <p className="text-xl font-semibold text-[#5a3a3a] mt-1">
             {userInfo?.title} {userInfo?.firstName} {userInfo?.lastName}
           </p>
         </div>
 
-        <div>
-          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">
+        {/* Email */}
+        <div className="pb-3 border-b border-[#e8bcbc]/50 mb-5">
+          <p className="text-xs text-[#8b6f6f] uppercase tracking-wider">
             Email
           </p>
-          <p className="text-lg font-medium">{userInfo?.email}</p>
+          <p className="text-lg font-medium text-[#5a3a3a] mt-1">
+            {userInfo?.email}
+          </p>
         </div>
 
-        <div>
-          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">
+        {/* Phone */}
+        <div className="pb-3 border-b border-[#e8bcbc]/50 mb-5">
+          <p className="text-xs text-[#8b6f6f] uppercase tracking-wider">
             Phone
           </p>
-          <p className="text-lg font-medium">{userInfo?.phone}</p>
+          <p className="text-lg font-medium text-[#5a3a3a] mt-1">
+            {userInfo?.phone}
+          </p>
         </div>
 
+        {/* Age */}
         <div>
-          <p className="text-sm text-[#8b6f6f] uppercase tracking-wide">Age</p>
-          <p className="text-lg font-medium">{userInfo?.age}</p>
+          <p className="text-xs text-[#8b6f6f] uppercase tracking-wider">Age</p>
+          <p className="text-lg font-medium text-[#5a3a3a] mt-1">
+            {userInfo?.age}
+          </p>
         </div>
       </div>
 
+      {/* Logout Button */}
       <button
         onClick={handleLogout}
-        className="w-full mt-8 bg-[#915858] text-[#FFD7D7] py-3 rounded-lg font-semibold hover:bg-[#7a4d4d] transition-all"
+        className="w-full mt-6 bg-[#915858] shadow-sm text-[#FFE5E5] py-3.5 rounded-xl font-semibold tracking-wide hover:bg-[#7a4d4d] active:scale-[0.98] transition-all duration-200"
       >
         Logout
       </button>
