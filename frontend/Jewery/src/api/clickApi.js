@@ -1,36 +1,35 @@
+// src/api/clickApi.js
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api", // <-- must match backend server.js
+  baseURL: "http://localhost:5000/api",
 });
 
-// === RECORD A USER CLICK ===
-// Logs a user's click on a specific product
-// body: { userId, productId, category (optional) }
-export const recordUserClick = async (data) => {
-  return API.post("/clicks/user", data);
+// === Record a product view (user click history) ===
+export const recordUserViewHistory = async (data) => {
+  return API.post("/clicks/history", data);
 };
 
-// === RECORD A PRODUCT CLICK ===
-// Logs a product click (total count per product)
-// body: { productId }
+// === Get user's view history ===
+export const getUserViewHistory = async (userId) => {
+  return API.get(`/clicks/history/${userId}`);
+};
+
+// === Clear user's history ===
+export const clearUserViewHistory = async (userId) => {
+  return API.delete(`/clicks/history/${userId}`);
+};
+
+// === Product click tracking ===
 export const recordProductClick = async (data) => {
   return API.post("/clicks/product", data);
 };
 
-// === GET ALL USER CLICKS (ADMIN DASHBOARD) ===
+export const getProductClicksByProductId = async (productId) => {
+  return API.get(`/clicks/product/${productId}`);
+};
+
+// === Admin analytics (get all clicks) ===
 export const getAllClicks = async () => {
   return API.get("/clicks");
-};
-
-// === GET USER CLICK HISTORY ===
-// param: userId
-export const getUserClicks = async (userId) => {
-  return API.get(`/clicks/user/${userId}`);
-};
-
-// === GET PRODUCT CLICK STATS ===
-// param: productId
-export const getProductClicks = async (productId) => {
-  return API.get(`/clicks/product/${productId}`);
 };

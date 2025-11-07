@@ -1,4 +1,3 @@
-// src/pages/AdminLogs.jsx
 import React, { useState, useEffect } from "react";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import {
@@ -16,7 +15,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import { getAllClicks, getUserClicks } from "../api/clickApi.js"; // ✅ use existing APIs
+import { getAllClicks, getUserViewHistory } from "../api/clickApi.js";
 
 const AdminLogs = () => {
   const COLORS = ["#B87A7D", "#DA9FA3", "#E7B6B9", "#F0CCCE", "#D2979B"];
@@ -29,34 +28,53 @@ const AdminLogs = () => {
 
   // === FETCH ALL CLICKS ===
   useEffect(() => {
-    const fetchLogs = async () => {
-      try {
-        const res = await getAllClicks();
-        const clicks = res.data;
+  const fetchLogs = async () => {
+    try {
+      const res = await getAllClicks();
+      const clicks = res.data || [];
 
-        // Normalize for table
-        const formatted = clicks.map((c, index) => ({
+      const formatted = clicks.map((c, index) => {
+        // Safely handle user & product objects
+        const userObj =
+          c.userId && typeof c.userId === "object"
+            ? c.userId
+            : c.userId
+            ? { _id: c.userId }
+            : null;
+
+        const productObj =
+          c.productId && typeof c.productId === "object"
+            ? c.productId
+            : c.productId
+            ? { _id: c.productId }
+            : null;
+
+        return {
           id: index + 1,
-          user: c.userId
-            ? `${c.userId.firstName || ""} ${c.userId.lastName || ""}`.trim()
-            : `User ${c.userId?._id?.slice(-5) || "N/A"}`,
-          userId: c.userId?._id,
-          action: "Clicked Product",
-          product: c.productId?.name || `Product ${c.productId?._id?.slice(-5) || "N/A"}`,
+          user: userObj
+            ? `${userObj.firstName || "Guest"} ${userObj.lastName || ""}`.trim()
+            : "Guest / Unknown",
+          userId: userObj?._id || null,
+          action: c.type === "product" ? "Product Click" : "Viewed Product",
+          product: productObj
+            ? productObj.name || `Product ${productObj._id?.slice(-5) || "N/A"}`
+            : "Unknown Product",
           category: c.category || "Unknown",
           date: new Date(c.createdAt).toLocaleString(),
-        }));
+        };
+      });
 
-        setLogs(formatted);
-      } catch (err) {
-        console.error("Error loading clicks:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setLogs(formatted);
+    } catch (err) {
+      console.error("Error loading clicks:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchLogs();
-  }, []);
+  fetchLogs();
+}, []);
+
 
   // === FILTER LOGS ===
   const filteredLogs = logs.filter(
@@ -68,41 +86,68 @@ const AdminLogs = () => {
 
   // === FETCH USER ANALYTICS ===
   const loadUserAnalytics = async (user) => {
+    if (!user || !user.userId) {
+      console.warn("No valid userId found for analytics request:", user);
+      alert("This record has no valid user ID, cannot load analytics.");
+      return;
+    }
+
     setSelectedUser(user);
     setUserAnalytics(null);
 
     try {
-      const res = await getUserClicks(user.userId);
-      const clicks = res.data;
+      const res = await getUserViewHistory(user.userId);
+      const clicks = res.data || [];
 
-      // ---- ANALYTICS CALCULATIONS ----
-      // 1️⃣ Daily visits
+      if (!clicks.length) {
+        setUserAnalytics({
+          dailyVisits: [],
+          favoriteCategories: [],
+          productClicks: [],
+        });
+        return;
+      }
+
+      // === ANALYTICS ===
       const dailyMap = {};
       clicks.forEach((click) => {
-        const day = new Date(click.createdAt).toLocaleDateString("en-US", { weekday: "short" });
+        const day = new Date(click.createdAt).toLocaleDateString("en-US", {
+          weekday: "short",
+        });
         dailyMap[day] = (dailyMap[day] || 0) + 1;
       });
-      const dailyVisits = Object.keys(dailyMap).map((day) => ({ day, visits: dailyMap[day] }));
+      const dailyVisits = Object.keys(dailyMap).map((day) => ({
+        day,
+        visits: dailyMap[day],
+      }));
 
-      // 2️⃣ Favorite categories
       const catMap = {};
       clicks.forEach((click) => {
         const cat = click.category || "Other";
         catMap[cat] = (catMap[cat] || 0) + 1;
       });
-      const favoriteCategories = Object.keys(catMap).map((name) => ({ name, value: catMap[name] }));
+      const favoriteCategories = Object.keys(catMap).map((name) => ({
+        name,
+        value: catMap[name],
+      }));
 
-      // 3️⃣ Product frequency
       const prodMap = {};
       clicks.forEach((click) => {
-        const prod = click.productId?.name || click.productId?._id || "Unknown";
+        const prod =
+          click.productId?.name ||
+          (typeof click.productId === "string" ? click.productId : click.productId?._id) ||
+          "Unknown";
         prodMap[prod] = (prodMap[prod] || 0) + 1;
       });
-      const productClicks = Object.keys(prodMap).map((name) => ({ name, clicks: prodMap[name] }));
+      const productClicks = Object.keys(prodMap).map((name) => ({
+        name,
+        clicks: prodMap[name],
+      }));
 
       setUserAnalytics({ dailyVisits, favoriteCategories, productClicks });
     } catch (err) {
       console.error("Error loading user analytics:", err);
+      alert("Failed to load analytics for this user.");
     }
   };
 
@@ -115,10 +160,11 @@ const AdminLogs = () => {
 
   return (
     <div className="min-h-screen bg-white p-8">
-      {/* Header */}
       <header className="mb-6">
         <h1 className="text-4xl font-bold text-[#B87A7D]">Activity Logs</h1>
-        <p className="text-[#DA9FA3] mt-2">Click on a user to inspect activity and analytics</p>
+        <p className="text-[#DA9FA3] mt-2">
+          Click on a user to inspect activity and analytics
+        </p>
       </header>
 
       {/* Search */}
@@ -184,7 +230,9 @@ const AdminLogs = () => {
             <h2 className="text-3xl font-bold text-[#B87A7D] mb-4">
               User: {selectedUser.user}
             </h2>
-            <p className="text-[#DA9FA3] mb-6">Analytics & activity overview</p>
+            <p className="text-[#DA9FA3] mb-6">
+              Analytics & activity overview
+            </p>
 
             {/* Daily Visits */}
             <div className="mb-6">
@@ -195,14 +243,21 @@ const AdminLogs = () => {
                   <XAxis dataKey="day" />
                   <YAxis />
                   <Tooltip />
-                  <Line type="monotone" dataKey="visits" stroke="#B87A7D" strokeWidth={3} />
+                  <Line
+                    type="monotone"
+                    dataKey="visits"
+                    stroke="#B87A7D"
+                    strokeWidth={3}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
             {/* Favorite Categories */}
             <div className="mb-6">
-              <h3 className="text-[#E7B6B9] font-medium mb-2">Favorite Categories</h3>
+              <h3 className="text-[#E7B6B9] font-medium mb-2">
+                Favorite Categories
+              </h3>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
@@ -216,7 +271,10 @@ const AdminLogs = () => {
                     label
                   >
                     {userAnalytics.favoriteCategories.map((entry, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={index}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -227,7 +285,9 @@ const AdminLogs = () => {
 
             {/* Product Clicks */}
             <div className="mb-6">
-              <h3 className="text-[#E7B6B9] font-medium mb-2">Most Clicked Products</h3>
+              <h3 className="text-[#E7B6B9] font-medium mb-2">
+                Most Clicked Products
+              </h3>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={userAnalytics.productClicks}>
                   <CartesianGrid strokeDasharray="3 3" />

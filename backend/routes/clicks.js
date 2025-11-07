@@ -1,40 +1,43 @@
 import express from "express";
 import {
-  recordUserClick,
+  recordUserViewHistory,
+  getUserViewHistory,
+  clearUserViewHistory,
   recordProductClick,
-  getUserClicksByUserId,
   getProductClicksByProductId,
   getAllClicks,
 } from "../controllers/clicksController.js";
 
 const router = express.Router();
 
-// === USER CLICK ROUTES ===
+/**
+ * ===============================
+ * 📌 CLICK & VIEW HISTORY ROUTES
+ * ===============================
+ */
 
-// @route   POST /api/clicks/user
-// @desc    Record a user clicking a product
-// @body    { userId, productId, category }
-router.post("/user", recordUserClick);
+// === USER VIEW HISTORY ===
 
-// @route   GET /api/clicks/user/:userId
-// @desc    Get all product clicks made by a user
-router.get("/user/:userId", getUserClicksByUserId);
+// Record or update a user's product view
+router.post("/history", recordUserViewHistory);
 
-// === PRODUCT CLICK ROUTES ===
+// Get a specific user's view history
+router.get("/history/:userId", getUserViewHistory);
 
-// @route   POST /api/clicks/product
-// @desc    Record a click for a product
-// @body    { productId }
+// Clear a specific user's view history
+router.delete("/history/:userId", clearUserViewHistory);
+
+// === PRODUCT CLICK ANALYTICS ===
+
+// Record or increment total product click count
 router.post("/product", recordProductClick);
 
-// @route   GET /api/clicks/product/:productId
-// @desc    Get total clicks and stats for a product
+// Get total click count for a specific product
 router.get("/product/:productId", getProductClicksByProductId);
 
-// === ADMIN / ANALYTICS ROUTES ===
+// === ADMIN ANALYTICS ===
 
-// @route   GET /api/clicks
-// @desc    Get all click records (both user & product)
+// Get all click records (all users, all products)
 router.get("/", getAllClicks);
 
 export default router;

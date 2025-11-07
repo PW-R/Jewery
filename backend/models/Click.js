@@ -4,42 +4,41 @@ const clickSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // must match your actual User model name
-      default: null,
+      ref: "User",
+      required: false, // product clicks might not have userId
     },
     productId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Product", // must match your Product model name
+      ref: "Product",
       required: true,
     },
     category: {
       type: String,
       default: "Unknown",
     },
-    device: {
+    type: {
       type: String,
-      default: "desktop", // optional: "desktop", "mobile", etc.
-    },
-    page: {
-      type: String,
-      default: "product-page",
+      enum: ["history", "product"], // 'history' = user view, 'product' = total product clicks
+      default: "history",
     },
     clickCount: {
       type: Number,
-      default: 1,
+      default: 1, // used for product analytics
     },
-    type: {
-      type: String,
-      enum: ["user", "product"],
-      default: "user",
-    },
-    timestamp: {
+    lastViewed: {
       type: Date,
-      default: Date.now,
+      default: Date.now, // last time user viewed this product
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true, // adds createdAt and updatedAt
+  }
 );
 
-const Click = mongoose.model("Click", clickSchema);
-export default Click;
+// Optional: update `lastViewed` automatically when saving
+clickSchema.pre("save", function (next) {
+  this.lastViewed = new Date();
+  next();
+});
+
+export default mongoose.model("Click", clickSchema);
