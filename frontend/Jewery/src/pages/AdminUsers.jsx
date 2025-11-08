@@ -27,7 +27,6 @@ const AdminUsers = () => {
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
 
-  // ✅ Redirect if no token or unauthorized
   useEffect(() => {
     if (!token) {
       setToastMessage("⚠️ Login required to access admin page.");
@@ -44,18 +43,15 @@ const AdminUsers = () => {
     fetchUsers();
   }, [token, role]);
 
-  // ✅ Fetch users (only visible for admin/superadmin)
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const res = await getUsers();
       let fetched = res.data;
 
-      // Admins can only see users and admins (no superadmins)
+      // Admin cannot see superadmin
       if (role === "admin") {
-        fetched = fetched.filter(
-          (u) => u.role === "user" || u.role === "admin"
-        );
+        fetched = fetched.filter((u) => u.role !== "superadmin");
       }
 
       setUsers(fetched);
@@ -67,7 +63,6 @@ const AdminUsers = () => {
     }
   };
 
-  // ✅ Delete user
   const handleDelete = async (id, userRole) => {
     if (userRole === "superadmin") {
       setToastMessage("🚫 You cannot delete a superadmin account.");
@@ -86,7 +81,6 @@ const AdminUsers = () => {
     }
   };
 
-  // ✅ Open modal
   const openModal = (user = null) => {
     if (user?.role === "superadmin" && role !== "superadmin") {
       setToastMessage("🚫 You cannot edit a superadmin account.");
@@ -97,12 +91,12 @@ const AdminUsers = () => {
       setEditUser(user);
       setFormData({
         title: user.title || "",
-        firstName: user.firstName,
-        lastName: user.lastName,
-        age: user.age,
-        email: user.email,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        age: user.age || "",
+        email: user.email || "",
         password: "",
-        phone: user.phone,
+        phone: user.phone || "",
         role: user.role,
       });
     } else {
@@ -121,41 +115,57 @@ const AdminUsers = () => {
     setModalOpen(true);
   };
 
-  // ✅ Input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!editUser && !formData.password) {
+      setToastMessage("⚠️ Password is required for new users.");
+      return;
+    }
+
+    // title must be selected from dropdown; do not assign default
+    const dataToSend = { ...formData };
+
+    if (editUser && !formData.password) delete dataToSend.password;
+
+    if (editUser && role !== "superadmin") delete dataToSend.role;
+
+    if (!editUser && role !== "superadmin") dataToSend.role = "user";
+
     try {
+      let res;
       if (editUser) {
-        const res = await updateUser(editUser._id, formData);
-        setUsers(
-          users.map((u) => (u._id === editUser._id ? res.data.user : u))
-        );
+        res = await updateUser(editUser._id, dataToSend);
+        const updated = res.data.user || res.data;
+        setUsers(users.map((u) => (u._id === editUser._id ? updated : u)));
         setToastMessage("✅ User updated successfully.");
       } else {
-        const res = await createUser(formData);
-        setUsers([res.data, ...users]);
+        res = await createUser(dataToSend);
+        const newUser = res.data.user || res.data;
+        setUsers([newUser, ...users]);
         setToastMessage("✅ New user added successfully.");
       }
+
       setModalOpen(false);
     } catch (err) {
-      console.error("Error saving user:", err);
+      console.error("❌ Error saving user:", err);
       setToastMessage("❌ Failed to save user.");
     }
   };
 
-  // ✅ Filter users
-  const filteredUsers = users.filter(
-    (u) =>
-      u.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      u.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = users.filter((u) => {
+    const s = search.toLowerCase();
+    return (
+      u.firstName?.toLowerCase().includes(s) ||
+      u.lastName?.toLowerCase().includes(s) ||
+      u.email?.toLowerCase().includes(s)
+    );
+  });
 
   return (
     <div className="min-h-screen p-8 bg-[#FFF5F5] text-[#B87A7D] relative">
@@ -167,7 +177,6 @@ const AdminUsers = () => {
         />
       )}
 
-      {/* Header */}
       <header className="mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-[#DA9FA3]">User Management</h1>
         {role === "superadmin" && (
@@ -180,7 +189,6 @@ const AdminUsers = () => {
         )}
       </header>
 
-      {/* Search */}
       <div className="mb-4">
         <input
           type="text"
@@ -191,7 +199,6 @@ const AdminUsers = () => {
         />
       </div>
 
-      {/* Users Table */}
       <div className="rounded-lg overflow-x-auto shadow-lg bg-white">
         <table className="min-w-full text-left divide-y divide-gray-200">
           <thead className="bg-[#DA9FA3] text-white">
@@ -274,7 +281,6 @@ const AdminUsers = () => {
         </table>
       </div>
 
-      {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40 p-4">
           <div className="relative rounded-xl p-6 w-full max-w-lg bg-[#F8EDEE] shadow-lg overflow-y-auto max-h-[90vh]">
@@ -290,12 +296,27 @@ const AdminUsers = () => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* First/Last Name */}
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium text-[#B87A7D]">Title</label>
+                <select
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  className="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#DA9FA3] w-full"
+                  required
+                >
+                  <option value="">-- Select title --</option>
+                  <option value="Mr.">Mr.</option>
+                  <option value="Mrs.">Mrs.</option>
+                  <option value="Ms.">Ms.</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              {/* First & Last Name */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col">
-                  <label className="mb-1 font-medium text-[#B87A7D]">
-                    First Name
-                  </label>
+                  <label className="mb-1 font-medium text-[#B87A7D]">First Name</label>
                   <input
                     name="firstName"
                     value={formData.firstName}
@@ -306,9 +327,7 @@ const AdminUsers = () => {
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-1 font-medium text-[#B87A7D]">
-                    Last Name
-                  </label>
+                  <label className="mb-1 font-medium text-[#B87A7D]">Last Name</label>
                   <input
                     name="lastName"
                     value={formData.lastName}
@@ -320,26 +339,22 @@ const AdminUsers = () => {
                 </div>
               </div>
 
-              {/* Contact */}
+              {/* Email & Phone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col">
-                  <label className="mb-1 font-medium text-[#B87A7D]">
-                    Email
-                  </label>
+                  <label className="mb-1 font-medium text-[#B87A7D]">Email</label>
                   <input
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Enter email address"
+                    placeholder="Enter email"
                     type="email"
                     className="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#DA9FA3] w-full"
                     required
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="mb-1 font-medium text-[#B87A7D]">
-                    Phone
-                  </label>
+                  <label className="mb-1 font-medium text-[#B87A7D]">Phone</label>
                   <input
                     name="phone"
                     value={formData.phone}
@@ -350,7 +365,7 @@ const AdminUsers = () => {
                 </div>
               </div>
 
-              {/* Credentials */}
+              {/* Age & Password */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col">
                   <label className="mb-1 font-medium text-[#B87A7D]">Age</label>
@@ -367,10 +382,7 @@ const AdminUsers = () => {
                   <label className="mb-1 font-medium text-[#B87A7D]">
                     Password
                     {editUser && (
-                      <span className="text-sm text-gray-500">
-                        {" "}
-                        (leave blank to keep current)
-                      </span>
+                      <span className="text-sm text-gray-500"> (leave blank to keep current)</span>
                     )}
                   </label>
                   <input
@@ -393,12 +405,11 @@ const AdminUsers = () => {
                   value={formData.role}
                   onChange={handleChange}
                   className="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#DA9FA3] w-full"
+                  disabled={role !== "superadmin"}
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
-                  {role === "superadmin" && (
-                    <option value="superadmin">Super Admin</option>
-                  )}
+                  {role === "superadmin" && <option value="superadmin">Super Admin</option>}
                 </select>
               </div>
 
