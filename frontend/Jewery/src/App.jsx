@@ -18,6 +18,8 @@ import AdminStock from "./pages/AdminStock";
 import AdminUsers from "./pages/AdminUsers";
 import AdminLogs from "./pages/AdminLogs";
 import AdminSettings from "./pages/AdminSettings";
+import AdminPendingChats from "./pages/AdminPendingChats";
+import AdminChatPanel from "./pages/AdminChatPanel";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -54,6 +56,8 @@ function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="logs" element={<AdminLogs />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="chats/pending" element={<AdminPendingChats />} />
+            <Route path="chats/panel" element={<AdminChatPanel />} />
           </Route>
         </Routes>
       </div>

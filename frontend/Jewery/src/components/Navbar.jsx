@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoPersonFill } from "react-icons/go";
+import { FaCommentDots } from "react-icons/fa"; // chat icon
+import ChatBox from "./ChatBox"; // import your ChatBox
+
 
 function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
@@ -201,6 +204,10 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
           )}
         </div>
       </div>
+
+      {/* --- Floating Chat Bubble --- */}
+      {isLoggedIn && <ChatBox />}
+
     </div>
   );
 }
@@ -385,7 +392,7 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
     setIsLoggedIn(false);
     setIsUserPanelOpen(false);
     localStorage.clear();
-    navigate("/Home"); // ensure this route exists
+    navigate("/Home");
   };
 
   return (

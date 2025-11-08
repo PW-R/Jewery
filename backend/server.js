@@ -11,7 +11,8 @@ import User from "./models/User.js";
 // === ROUTES ===
 import userRoutes from "./routes/users.js";
 import productRoutes from "./routes/products.js";
-import clickRoutes from "./routes/clicks.js"; // <-- Click tracking (view history + analytics)
+import clickRoutes from "./routes/clicks.js"; // Click tracking
+import chatRoutes from "./routes/chatRoutes.js"; // <-- NEW Chat routes
 
 dotenv.config();
 
@@ -29,7 +30,8 @@ app.use(express.urlencoded({ extended: true }));
 ========================== */
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
-app.use("/api/clicks", clickRoutes); // <-- Register click tracking routes
+app.use("/api/clicks", clickRoutes);
+app.use("/api/chats", chatRoutes); // <-- Register chat routes
 
 /* ==========================
    💾 DATABASE CONNECTION
