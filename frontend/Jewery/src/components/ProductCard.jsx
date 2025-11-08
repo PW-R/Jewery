@@ -1,10 +1,36 @@
 // src/components/ProductCard.jsx
-function ProductCard({ product }) {
-  if (!product) return null; // Prevent errors if product is undefined
+import { useNavigate } from "react-router-dom";
+import { recordProductClick, recordUserViewHistory } from "../api/clickApi";
+
+function ProductCard({ product, userId }) {
+  const navigate = useNavigate();
+
+  if (!product) return null;
+
+  const handleClick = async () => {
+    try {
+      // Record the product click (analytics)
+      await recordProductClick({ productId: product._id });
+
+      // Optionally, record the user's view history if you have a userId
+      if (userId) {
+        await recordUserViewHistory({ userId, productId: product._id });
+      }
+
+      // Navigate to product detail page
+      navigate(`/product/${product._id}`);
+    } catch (err) {
+      console.error("Error recording click:", err);
+      // Still navigate even if recording fails
+      navigate(`/product/${product._id}`);
+    }
+  };
 
   return (
-    <div className="text-center   rounded-xl p-6 shadow-sm cursor-pointer">
-      {/* Product Image */}
+    <div
+      onClick={handleClick}
+      className="text-center rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md transition"
+    >
       <img
         src={
           product.images && product.images.length > 0
@@ -14,14 +40,8 @@ function ProductCard({ product }) {
         alt={product.name}
         className="w-64 h-64 object-cover mx-auto mb-4 rounded-md transform transition-transform duration-300 hover:scale-105"
       />
-
-      {/* Product Name */}
       <h3 className="text-lg font-medium">{product.name}</h3>
-
-      {/* Product Description */}
       <p className="text-sm text-[#915858]/80">{product.description}</p>
-
-      {/* Product Price */}
       <p className="mt-2 text-[#915858] font-semibold">
         ${product.price?.toLocaleString()}
       </p>
