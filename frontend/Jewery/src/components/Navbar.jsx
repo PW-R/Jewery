@@ -1,4 +1,3 @@
-// src/Navbar.jsx
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoPersonFill } from "react-icons/go";
@@ -10,16 +9,20 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const [userInfo, setUserInfo] = useState(null);
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeTab, setActiveTab] = useState("login");
-  const [isNavigating, setIsNavigating] = useState(false); // page transition
+  const [isNavigating, setIsNavigating] = useState(false);
 
+  // Check token on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) setIsLoggedIn(true);
   }, [setIsLoggedIn]);
 
-  // Fetch logged-in user info
+  // Fetch user info only if logged in
   useEffect(() => {
-    if (!isLoggedIn) return setUserInfo(null);
+    if (!isLoggedIn) {
+      setUserInfo(null);
+      return;
+    }
 
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
@@ -36,7 +39,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
         return res.json();
       })
       .then((data) => setUserInfo(data))
-      .catch((err) => console.log(err));
+      .catch((err) => console.error("Error fetching user:", err));
   }, [isLoggedIn]);
 
   const menuItems = [
@@ -62,13 +65,13 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
     { name: "CONTACT US", path: "/contact", subMenu: [] },
   ];
 
-  // Smooth navigation function
+  // Smooth navigation
   const smoothNavigate = (path) => {
     setIsNavigating(true);
     setTimeout(() => {
       navigate(path);
       setIsNavigating(false);
-    }, 300); // match fade duration
+    }, 300);
   };
 
   return (
@@ -78,24 +81,19 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
       }`}
     >
       {/* --- Top Bar --- */}
-      <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-center z-30 ">
-        {/* Left: sidebar toggle */}
+      <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-center z-30">
         <div
           className="absolute left-0 top-0 h-16 w-12 flex items-center justify-center cursor-pointer"
           onMouseEnter={() => setIsSidebarOpen(true)}
         >
           <span className="text-2xl font-bold text-[#674948]">☰</span>
         </div>
-
-        {/* Center title */}
         <h1
           className="text-5xl font-light tracking-widest text-[#674948] cursor-pointer"
           onClick={() => smoothNavigate("/Home")}
         >
           LURICE
         </h1>
-
-        {/* Right: user icon toggle panel */}
         <div className="absolute right-4 top-0 h-16 flex items-center">
           <GoPersonFill
             className="text-3xl text-[#674948] cursor-pointer transition"
@@ -114,7 +112,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
         }`}
         onMouseLeave={() => setIsSidebarOpen(false)}
       >
-        <div className="mt-16 px-4 text-lg text-white ">
+        <div className="mt-16 px-4 text-lg text-white">
           {menuItems.map((item, index) => (
             <div key={index} className="mb-2">
               <div
@@ -160,7 +158,6 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
         <div className="p-6 mt-16 font-sans">
           {!isLoggedIn ? (
             <>
-              {/* Login/Register Tabs */}
               <div className="flex mb-6 border-b-2 border-[#915858]">
                 <button
                   className={`flex-1 py-3 text-center font-semibold uppercase ${
@@ -183,7 +180,6 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
                   Register
                 </button>
               </div>
-
               {activeTab === "login" ? (
                 <LoginForm
                   setIsLoggedIn={setIsLoggedIn}
@@ -226,12 +222,21 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userId", data.user._id || data.user.id);
+        if (data.user.role) localStorage.setItem("role", data.user.role);
+
         setIsLoggedIn(true);
         setIsUserPanelOpen(false);
-        navigate(data.user.role === "admin" ? "/admin/dashboard" : "/");
-      } else alert(data.message);
+
+        navigate(
+          data.user.role === "admin" || data.user.role === "superadmin"
+            ? "/admin/dashboard"
+            : "/Home"
+        );
+      } else {
+        alert(data.message || "Login failed");
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Login error:", err);
     }
   };
 
@@ -278,7 +283,15 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
       const res = await fetch("http://localhost:5000/api/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, firstName, lastName, age, email, password, phone }),
+        body: JSON.stringify({
+          title,
+          firstName,
+          lastName,
+          age,
+          email,
+          password,
+          phone,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -286,7 +299,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         setIsUserPanelOpen(false);
       } else alert(data.message);
     } catch (err) {
-      console.log(err);
+      console.error("Register error:", err);
     }
   };
 
@@ -371,9 +384,8 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setIsUserPanelOpen(false);
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    navigate("/Home");
+    localStorage.clear();
+    navigate("/Home"); // ensure this route exists
   };
 
   return (
@@ -383,13 +395,19 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
       </h2>
       <div>
         {[
-          { label: "Name", value: `${userInfo?.title} ${userInfo?.firstName} ${userInfo?.lastName}` },
+          {
+            label: "Name",
+            value: `${userInfo?.title} ${userInfo?.firstName} ${userInfo?.lastName}`,
+          },
           { label: "Email", value: userInfo?.email },
           { label: "Phone", value: userInfo?.phone },
           { label: "Age", value: userInfo?.age },
+          { label: "Role", value: userInfo?.role || "user" },
         ].map((item, idx) => (
           <div key={idx} className="pb-3 border-b border-[#e8bcbc]/50 mb-5">
-            <p className="text-xs text-[#8b6f6f] uppercase tracking-wider">{item.label}</p>
+            <p className="text-xs text-[#8b6f6f] uppercase tracking-wider">
+              {item.label}
+            </p>
             <p className="text-lg font-medium text-[#5a3a3a] mt-1">{item.value}</p>
           </div>
         ))}

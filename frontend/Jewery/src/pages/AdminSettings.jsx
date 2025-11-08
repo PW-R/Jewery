@@ -1,10 +1,13 @@
 // src/pages/AdminSettings.jsx
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { FaSave, FaTrash, FaSignOutAlt } from "react-icons/fa";
 import { getUserById, updateUser, deleteUser } from "../api/userApi";
 
 const AdminSettings = () => {
+  // ✅ Get setIsLoggedIn from Outlet context
+  const { setIsLoggedIn } = useOutletContext();
+
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -19,8 +22,6 @@ const AdminSettings = () => {
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
-
-  // Replace with actual admin ID logic if needed (e.g., from token payload)
   const userId = localStorage.getItem("userId");
 
   const fetchUser = async () => {
@@ -77,10 +78,12 @@ const AdminSettings = () => {
     }
   };
 
+  // ✅ Fixed logout using context function
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
-    navigate("/");
+    setIsLoggedIn(false); // update main app state
+    navigate("/Home");
   };
 
   if (loading) return <p className="text-[#B87A7D]">Loading...</p>;

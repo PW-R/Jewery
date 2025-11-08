@@ -1,15 +1,18 @@
 // src/pages/AdminUsers.jsx
 import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrash, FaPlus, FaTimes } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import { getUsers, createUser, updateUser, deleteUser } from "../api/userApi";
+import Toast from "../components/Toast";
 
 const AdminUsers = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-
   const [modalOpen, setModalOpen] = useState(false);
   const [editUser, setEditUser] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     firstName: "",
@@ -21,36 +24,75 @@ const AdminUsers = () => {
     role: "user",
   });
 
-  // Fetch users
+  const role = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
+
+  // ✅ Redirect if no token or unauthorized
+  useEffect(() => {
+    if (!token) {
+      setToastMessage("⚠️ Login required to access admin page.");
+      setTimeout(() => navigate("/login"), 2500);
+      return;
+    }
+
+    if (role !== "admin" && role !== "superadmin") {
+      setToastMessage("🚫 You don’t have permission to access this page.");
+      setTimeout(() => navigate("/"), 2500);
+      return;
+    }
+
+    fetchUsers();
+  }, [token, role]);
+
+  // ✅ Fetch users (only visible for admin/superadmin)
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const res = await getUsers();
-      setUsers(res.data);
+      let fetched = res.data;
+
+      // Admins can only see users and admins (no superadmins)
+      if (role === "admin") {
+        fetched = fetched.filter(
+          (u) => u.role === "user" || u.role === "admin"
+        );
+      }
+
+      setUsers(fetched);
     } catch (err) {
       console.error("Error fetching users:", err);
+      setToastMessage("❌ Failed to load users.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  // ✅ Delete user
+  const handleDelete = async (id, userRole) => {
+    if (userRole === "superadmin") {
+      setToastMessage("🚫 You cannot delete a superadmin account.");
+      return;
+    }
 
-  // Delete user
-  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
+
     try {
       await deleteUser(id);
       setUsers(users.filter((u) => u._id !== id));
+      setToastMessage("🗑️ User deleted successfully.");
     } catch (err) {
       console.error("Error deleting user:", err);
+      setToastMessage("❌ Failed to delete user.");
     }
   };
 
-  // Open modal
+  // ✅ Open modal
   const openModal = (user = null) => {
+    if (user?.role === "superadmin" && role !== "superadmin") {
+      setToastMessage("🚫 You cannot edit a superadmin account.");
+      return;
+    }
+
     if (user) {
       setEditUser(user);
       setFormData({
@@ -79,13 +121,13 @@ const AdminUsers = () => {
     setModalOpen(true);
   };
 
-  // Input change
+  // ✅ Input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Submit form
+  // ✅ Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -94,17 +136,20 @@ const AdminUsers = () => {
         setUsers(
           users.map((u) => (u._id === editUser._id ? res.data.user : u))
         );
+        setToastMessage("✅ User updated successfully.");
       } else {
         const res = await createUser(formData);
         setUsers([res.data, ...users]);
+        setToastMessage("✅ New user added successfully.");
       }
       setModalOpen(false);
     } catch (err) {
       console.error("Error saving user:", err);
+      setToastMessage("❌ Failed to save user.");
     }
   };
 
-  // Filtered users
+  // ✅ Filter users
   const filteredUsers = users.filter(
     (u) =>
       u.firstName.toLowerCase().includes(search.toLowerCase()) ||
@@ -113,16 +158,26 @@ const AdminUsers = () => {
   );
 
   return (
-    <div className="min-h-screen p-8 bg-[#FFF5F5] text-[#B87A7D]">
+    <div className="min-h-screen p-8 bg-[#FFF5F5] text-[#B87A7D] relative">
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          duration={3000}
+          onClose={() => setToastMessage("")}
+        />
+      )}
+
       {/* Header */}
       <header className="mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-[#DA9FA3]">User Management</h1>
-        <button
-          className="px-5 py-2 rounded-lg flex items-center gap-2 bg-[#DA9FA3] text-white shadow-md hover:opacity-90 transition"
-          onClick={() => openModal()}
-        >
-          <FaPlus /> Add User
-        </button>
+        {role === "superadmin" && (
+          <button
+            className="px-5 py-2 rounded-lg flex items-center gap-2 bg-[#DA9FA3] text-white shadow-md hover:opacity-90 transition"
+            onClick={() => openModal()}
+          >
+            <FaPlus /> Add User
+          </button>
+        )}
       </header>
 
       {/* Search */}
@@ -136,7 +191,7 @@ const AdminUsers = () => {
         />
       </div>
 
-      {/* Users table */}
+      {/* Users Table */}
       <div className="rounded-lg overflow-x-auto shadow-lg bg-white">
         <table className="min-w-full text-left divide-y divide-gray-200">
           <thead className="bg-[#DA9FA3] text-white">
@@ -172,20 +227,42 @@ const AdminUsers = () => {
                   <td className="p-3">{user.age}</td>
                   <td className="p-3">{user.phone}</td>
                   <td className="p-3">
-                    <span className="px-3 py-1 rounded-full text-white bg-[#D2979B] text-sm">
+                    <span
+                      className={`px-3 py-1 rounded-full text-white text-sm ${
+                        user.role === "admin"
+                          ? "bg-[#C47A84]"
+                          : user.role === "superadmin"
+                          ? "bg-[#915858]"
+                          : "bg-[#D2979B]"
+                      }`}
+                    >
                       {user.role}
                     </span>
                   </td>
                   <td className="p-3 flex gap-3">
                     <button
-                      className="hover:text-[#DA9FA3] transition"
+                      className={`hover:text-[#DA9FA3] transition ${
+                        user.role === "superadmin" && role !== "superadmin"
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
                       onClick={() => openModal(user)}
+                      disabled={
+                        user.role === "superadmin" && role !== "superadmin"
+                      }
                     >
                       <FaEdit />
                     </button>
                     <button
-                      className="hover:text-red-600 transition"
-                      onClick={() => handleDelete(user._id)}
+                      className={`hover:text-red-600 transition ${
+                        user.role === "superadmin" && role !== "superadmin"
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
+                      onClick={() => handleDelete(user._id, user.role)}
+                      disabled={
+                        user.role === "superadmin" && role !== "superadmin"
+                      }
                     >
                       <FaTrash />
                     </button>
@@ -197,7 +274,6 @@ const AdminUsers = () => {
         </table>
       </div>
 
-      {/* Modal */}
       {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40 p-4">
@@ -214,7 +290,7 @@ const AdminUsers = () => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Name */}
+              {/* First/Last Name */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col">
                   <label className="mb-1 font-medium text-[#B87A7D]">
@@ -320,6 +396,9 @@ const AdminUsers = () => {
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
+                  {role === "superadmin" && (
+                    <option value="superadmin">Super Admin</option>
+                  )}
                 </select>
               </div>
 

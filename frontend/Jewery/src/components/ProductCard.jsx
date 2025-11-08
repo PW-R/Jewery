@@ -1,13 +1,17 @@
-// src/components/ProductCard.jsx
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { recordProductClick, recordUserViewHistory } from "../api/clickApi";
 
 function ProductCard({ product, userId }) {
   const navigate = useNavigate();
+  const [isClicking, setIsClicking] = useState(false); // Prevent double clicks
 
   if (!product) return null;
 
   const handleClick = async () => {
+    if (isClicking) return; // Ignore if already processing
+    setIsClicking(true);
+
     try {
       // Record the product click (analytics)
       await recordProductClick({ productId: product._id });
@@ -21,8 +25,9 @@ function ProductCard({ product, userId }) {
       navigate(`/product/${product._id}`);
     } catch (err) {
       console.error("Error recording click:", err);
-      // Still navigate even if recording fails
-      navigate(`/product/${product._id}`);
+      navigate(`/product/${product._id}`); // Still navigate on error
+    } finally {
+      setIsClicking(false);
     }
   };
 
