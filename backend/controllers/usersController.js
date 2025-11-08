@@ -1,6 +1,6 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
-
+import bcrypt from 'bcryptjs';
 
 // === GET ALL USERS ===
 export const getAllUsers = async (req, res) => {
@@ -29,7 +29,7 @@ export const getUserById = async (req, res) => {
 // === REGISTER ===
 export const registerUser = async (req, res) => {
   try {
-    const { title, firstName, lastName, age, email, password, phone } = req.body;
+    const { title, firstName, lastName, age, email, password, phone, role } = req.body;
 
     // Check if all required fields are provided
     if (!title || !firstName || !lastName || !age || !email || !password || !phone) {
@@ -79,20 +79,18 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt:', email, password); // log ตรวจสอบ
 
     const user = await User.findOne({ email });
-    if (!user) {
-      console.log('User not found');
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
+    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
 
     const isMatch = await user.comparePassword(password);
-    console.log('Password match:', isMatch);
-
     if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
-    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
 
     res.json({
       message: 'Login successful',
@@ -105,8 +103,8 @@ export const loginUser = async (req, res) => {
         email: user.email,
         phone: user.phone,
         age: user.age,
-        role: user.role 
-      }
+        role: user.role,
+      },
     });
   } catch (err) {
     console.error(err);
@@ -114,20 +112,18 @@ export const loginUser = async (req, res) => {
   }
 };
 
-
 // === UPDATE USER ===
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
+    const { password, ...rest } = req.body;
 
-    // Check if the user in token matches the user being updated
-    if (req.user.id !== id) {
-      return res.status(403).json({ message: 'You can update only your own account' });
+    // Update password if provided
+    if (password && password.trim() !== '') {
+      rest.password = await bcrypt.hash(password, 10);
     }
 
-    const updates = req.body;
-    const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
-
+    const updatedUser = await User.findByIdAndUpdate(id, rest, { new: true });
     res.json({ message: 'User updated successfully', user: updatedUser });
   } catch (err) {
     console.error(err);
@@ -139,12 +135,6 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Check if the user in token matches the user being deleted
-    if (req.user.id !== id) {
-      return res.status(403).json({ message: 'You can delete only your own account' });
-    }
-
     await User.findByIdAndDelete(id);
     res.json({ message: 'User deleted successfully' });
   } catch (err) {

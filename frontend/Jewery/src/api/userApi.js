@@ -1,12 +1,12 @@
 // src/api/userApi.js
 import axios from "axios";
 
-// ✅ สร้าง instance ของ axios
+// ✅ Create axios instance
 const API = axios.create({
-  baseURL: "http://localhost:5000/api", // ต้องตรงกับ backend
+  baseURL: "http://localhost:5000/api", // must match backend
 });
 
-// ✅ Interceptor: แนบ token ทุกครั้งก่อนส่ง request
+// ✅ Automatically attach JWT token if present
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -15,32 +15,25 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-// --- Get all users
-export const getUsers = () => {
-  return API.get("/users");
-};
+// === USERS API ===
+// === USERS API ===
 
-// --- Get single user by ID
-export const getUserById = (id) => {
-  return API.get(`/users/${id}`);
-};
+// Get all users
+export const getUsers = () => API.get("/users");
 
-// --- Create / register a user
-export const createUser = (userData) => {
-  return API.post("/users", userData);
-};
+// Get single user by ID
+export const getUserById = (id) => API.get(`/users/${id}`);
 
-// --- Update user (ไม่ต้องส่ง token แล้ว)
-export const updateUser = (id, userData) => {
-  return API.put(`/users/update/${id}`, userData);
-};
+// Register (Create) new user
+// Register (Create) new user
+export const createUser = (userData) => API.post("/users/register", userData);
 
-// --- Delete user (ไม่ต้องส่ง token แล้ว)
-export const deleteUser = (id) => {
-  return API.delete(`/users/delete/${id}`);
-};
+// Update user info
+export const updateUser = (id, data) => API.put(`/users/update/${id}`, data);
 
-// --- Login (เพื่อรับ token ใหม่)
-export const loginUser = (credentials) => {
-  return API.post("/users/login", credentials);
-};
+// Delete user
+// Delete user
+export const deleteUser = (id) => API.delete(`/users/delete/${id}`);
+
+// Login user
+export const loginUser = (credentials) => API.post("/users/login", credentials);
