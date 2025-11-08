@@ -25,13 +25,15 @@ export const getUsers = () => API.get("/users");
 export const getUserById = (id) => API.get(`/users/${id}`);
 
 // Register (Create) new user
+// Register (Create) new user
 export const createUser = (userData) => API.post("/users/register", userData);
 
 // Update user info
-export const updateUser = (id, data) => API.put(`/users/${id}`, data);
+export const updateUser = (id, data) => API.put(`/users/update/${id}`, data);
 
 // Delete user
-export const deleteUser = (id) => API.delete(`/users/${id}`); // <-- standard REST
+// Delete user
+export const deleteUser = (id) => API.delete(`/users/delete/${id}`);
 
 // Login user
 export const loginUser = (credentials) => API.post("/users/login", credentials);
