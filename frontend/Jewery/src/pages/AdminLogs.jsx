@@ -1,306 +1,153 @@
-import React, { useState, useEffect } from "react";
-import { FaSearch, FaTimes } from "react-icons/fa";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  CartesianGrid,
-  Legend,
-} from "recharts";
-import { getAllClicks, getUserViewHistory } from "../api/clickApi.js";
+import React, { useEffect, useState } from "react";
+import { getAllClicks } from "../api/clickApi.js";
+import { getUsers } from "../api/userApi.js";
+import { getProducts } from "../api/productApi.js";
+import { format } from "date-fns";
 
 const AdminLogs = () => {
-  const COLORS = ["#B87A7D", "#DA9FA3", "#E7B6B9", "#F0CCCE", "#D2979B"];
-
   const [logs, setLogs] = useState([]);
-  const [search, setSearch] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [userAnalytics, setUserAnalytics] = useState(null);
+  const [usersMap, setUsersMap] = useState({});
+  const [productsMap, setProductsMap] = useState({});
   const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState("all");
+  const [error, setError] = useState(null);
 
-  // === FETCH ALL CLICKS ===
   useEffect(() => {
-  const fetchLogs = async () => {
+    loadLogs();
+  }, []);
+
+  const loadLogs = async () => {
     try {
-      const res = await getAllClicks();
-      const clicks = res.data || [];
+      setLoading(true);
+      setError(null);
 
-      const formatted = clicks.map((c, index) => {
-        // Safely handle user & product objects
-        const userObj =
-          c.userId && typeof c.userId === "object"
-            ? c.userId
-            : c.userId
-            ? { _id: c.userId }
-            : null;
+      // 1️⃣ Fetch all clicks
+      const clicksRes = await getAllClicks();
+      const clicksData = clicksRes?.data || [];
 
-        const productObj =
-          c.productId && typeof c.productId === "object"
-            ? c.productId
-            : c.productId
-            ? { _id: c.productId }
-            : null;
-
-        return {
-          id: index + 1,
-          user: userObj
-            ? `${userObj.firstName || "Guest"} ${userObj.lastName || ""}`.trim()
-            : "Guest / Unknown",
-          userId: userObj?._id || null,
-          action: c.type === "product" ? "Product Click" : "Viewed Product",
-          product: productObj
-            ? productObj.name || `Product ${productObj._id?.slice(-5) || "N/A"}`
-            : "Unknown Product",
-          category: c.category || "Unknown",
-          date: new Date(c.createdAt).toLocaleString(),
-        };
+      // 2️⃣ Fetch all users
+      const usersRes = await getUsers();
+      const usersData = usersRes?.data || [];
+      const usersLookup = {};
+      usersData.forEach((u) => {
+        usersLookup[u._id] = u;
       });
 
-      setLogs(formatted);
+      // 3️⃣ Fetch all products
+      const productsRes = await getProducts();
+      const productsData = productsRes?.data || [];
+      const productsLookup = {};
+      productsData.forEach((p) => {
+        productsLookup[p._id] = p;
+      });
+
+      setUsersMap(usersLookup);
+      setProductsMap(productsLookup);
+
+      // 4️⃣ Sort logs by lastViewed descending
+      const sortedLogs = clicksData.sort(
+        (a, b) => new Date(b.lastViewed) - new Date(a.lastViewed)
+      );
+
+      setLogs(sortedLogs);
     } catch (err) {
-      console.error("Error loading clicks:", err);
+      console.error("Error loading admin logs:", err);
+      setError("Failed to load logs. Please check your server.");
     } finally {
       setLoading(false);
     }
   };
 
-  fetchLogs();
-}, []);
-
-
-  // === FILTER LOGS ===
-  const filteredLogs = logs.filter(
-    (log) =>
-      log.user.toLowerCase().includes(search.toLowerCase()) ||
-      log.action.toLowerCase().includes(search.toLowerCase()) ||
-      log.product.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // === FETCH USER ANALYTICS ===
-  const loadUserAnalytics = async (user) => {
-    if (!user || !user.userId) {
-      console.warn("No valid userId found for analytics request:", user);
-      alert("This record has no valid user ID, cannot load analytics.");
-      return;
-    }
-
-    setSelectedUser(user);
-    setUserAnalytics(null);
-
-    try {
-      const res = await getUserViewHistory(user.userId);
-      const clicks = res.data || [];
-
-      if (!clicks.length) {
-        setUserAnalytics({
-          dailyVisits: [],
-          favoriteCategories: [],
-          productClicks: [],
-        });
-        return;
-      }
-
-      // === ANALYTICS ===
-      const dailyMap = {};
-      clicks.forEach((click) => {
-        const day = new Date(click.createdAt).toLocaleDateString("en-US", {
-          weekday: "short",
-        });
-        dailyMap[day] = (dailyMap[day] || 0) + 1;
-      });
-      const dailyVisits = Object.keys(dailyMap).map((day) => ({
-        day,
-        visits: dailyMap[day],
-      }));
-
-      const catMap = {};
-      clicks.forEach((click) => {
-        const cat = click.category || "Other";
-        catMap[cat] = (catMap[cat] || 0) + 1;
-      });
-      const favoriteCategories = Object.keys(catMap).map((name) => ({
-        name,
-        value: catMap[name],
-      }));
-
-      const prodMap = {};
-      clicks.forEach((click) => {
-        const prod =
-          click.productId?.name ||
-          (typeof click.productId === "string" ? click.productId : click.productId?._id) ||
-          "Unknown";
-        prodMap[prod] = (prodMap[prod] || 0) + 1;
-      });
-      const productClicks = Object.keys(prodMap).map((name) => ({
-        name,
-        clicks: prodMap[name],
-      }));
-
-      setUserAnalytics({ dailyVisits, favoriteCategories, productClicks });
-    } catch (err) {
-      console.error("Error loading user analytics:", err);
-      alert("Failed to load analytics for this user.");
-    }
-  };
-
-  if (loading)
-    return (
-      <div className="min-h-screen flex items-center justify-center text-[#B87A7D]">
-        Loading activity logs...
-      </div>
-    );
+  const filteredLogs =
+    filterType === "all" ? logs : logs.filter((item) => item.type === filterType);
 
   return (
-    <div className="min-h-screen bg-white p-8">
-      <header className="mb-6">
-        <h1 className="text-4xl font-bold text-[#B87A7D]">Activity Logs</h1>
-        <p className="text-[#DA9FA3] mt-2">
-          Click on a user to inspect activity and analytics
-        </p>
-      </header>
-
-      {/* Search */}
-      <div className="mb-4 flex items-center gap-2">
-        <input
-          type="text"
-          placeholder="Search by user, action, or product..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded flex-1"
-        />
-        <FaSearch className="text-[#B87A7D]" />
-      </div>
-
-      {/* Logs Table */}
-      <div className="bg-[#F0CCCE]/10 shadow rounded overflow-x-auto">
-        <table className="min-w-full text-left">
-          <thead className="bg-[#E7B6B9]/30">
-            <tr>
-              <th className="p-3">User</th>
-              <th className="p-3">Action</th>
-              <th className="p-3">Product</th>
-              <th className="p-3">Category</th>
-              <th className="p-3">Date & Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredLogs.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="p-4 text-center text-gray-500">
-                  No logs found.
-                </td>
-              </tr>
-            ) : (
-              filteredLogs.map((log) => (
-                <tr
-                  key={log.id}
-                  className="border-b hover:bg-[#DA9FA3]/10 cursor-pointer transition"
-                  onClick={() => loadUserAnalytics(log)}
-                >
-                  <td className="p-3 text-[#B87A7D] font-medium">{log.user}</td>
-                  <td className="p-3 text-[#DA9FA3]">{log.action}</td>
-                  <td className="p-3 text-[#E7B6B9]">{log.product}</td>
-                  <td className="p-3 text-[#E7B6B9]">{log.category}</td>
-                  <td className="p-3 text-[#D2979B]">{log.date}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* User Inspector Modal */}
-      {selectedUser && userAnalytics && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-end z-50">
-          <div className="bg-white w-full md:w-2/3 h-full p-6 overflow-y-auto relative">
+    <div className="min-h-screen bg-[#FBE8E8] text-[#915858] p-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <h2 className="text-2xl font-semibold mb-3 md:mb-0">
+          📊 Admin Analytics Logs
+        </h2>
+        {/* Filter Buttons */}
+        <div className="flex gap-3">
+          {["all", "history", "product"].map((type) => (
             <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
-              onClick={() => setSelectedUser(null)}
+              key={type}
+              className={`px-4 py-2 rounded-xl capitalize transition-all ${
+                filterType === type
+                  ? "bg-[#915858] text-white"
+                  : "bg-white border border-[#915858] hover:bg-[#f8dada]"
+              }`}
+              onClick={() => setFilterType(type)}
             >
-              <FaTimes />
+              {type === "all"
+                ? "All"
+                : type === "history"
+                ? "User History"
+                : "Product Clicks"}
             </button>
-            <h2 className="text-3xl font-bold text-[#B87A7D] mb-4">
-              User: {selectedUser.user}
-            </h2>
-            <p className="text-[#DA9FA3] mb-6">
-              Analytics & activity overview
-            </p>
-
-            {/* Daily Visits */}
-            <div className="mb-6">
-              <h3 className="text-[#E7B6B9] font-medium mb-2">Daily Visits</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={userAnalytics.dailyVisits}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="visits"
-                    stroke="#B87A7D"
-                    strokeWidth={3}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Favorite Categories */}
-            <div className="mb-6">
-              <h3 className="text-[#E7B6B9] font-medium mb-2">
-                Favorite Categories
-              </h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={userAnalytics.favoriteCategories}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#DA9FA3"
-                    label
-                  >
-                    {userAnalytics.favoriteCategories.map((entry, index) => (
-                      <Cell
-                        key={index}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Product Clicks */}
-            <div className="mb-6">
-              <h3 className="text-[#E7B6B9] font-medium mb-2">
-                Most Clicked Products
-              </h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={userAnalytics.productClicks}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" hide />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="clicks" fill="#B87A7D" barSize={20} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto bg-white shadow-md rounded-2xl p-4">
+        {loading ? (
+          <div className="text-center text-[#915858] py-6">Loading click data...</div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-6">{error}</div>
+        ) : filteredLogs.length === 0 ? (
+          <div className="text-center text-[#915858] py-6">No click logs found.</div>
+        ) : (
+          <table className="min-w-full table-auto border-collapse">
+            <thead>
+              <tr className="bg-[#FBE8E8] text-left text-[#915858] border-b border-[#f0caca]">
+                <th className="px-4 py-2">#</th>
+                <th className="px-4 py-2">User</th>
+                <th className="px-4 py-2">Product</th>
+                <th className="px-4 py-2">Category</th>
+                <th className="px-4 py-2">Type</th>
+                <th className="px-4 py-2 text-center">Click Count</th>
+                <th className="px-4 py-2">Last Viewed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredLogs.map((item, index) => {
+                // Handle ObjectId vs string
+                const userIdKey = item.userId?._id || item.userId;
+                const productIdKey = item.productId?._id || item.productId;
+
+                const user = userIdKey ? usersMap[userIdKey] : null;
+                const product = productIdKey ? productsMap[productIdKey] : null;
+
+                return (
+                  <tr
+                    key={item._id || index}
+                    className="hover:bg-[#fdf4f4] border-b border-[#f5dcdc]"
+                  >
+                    <td className="px-4 py-2">{index + 1}</td>
+                    <td className="px-4 py-2">
+                      {user
+                        ? `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+                          user.email
+                        : "Anonymous"}
+                    </td>
+                    <td className="px-4 py-2">{product?.name || "Unknown Product"}</td>
+                    <td className="px-4 py-2">{product?.category || "—"}</td>
+                    <td className="px-4 py-2 capitalize">{item.type || "N/A"}</td>
+                    <td className="px-4 py-2 text-center">{item.clickCount ?? 0}</td>
+                    <td className="px-4 py-2">
+                      {item.lastViewed
+                        ? format(new Date(item.lastViewed), "yyyy-MM-dd HH:mm")
+                        : "—"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 };

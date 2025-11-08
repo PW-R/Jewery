@@ -1,3 +1,4 @@
+// src/pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { FaUsers, FaChartLine, FaUserCheck, FaTimes } from "react-icons/fa";
 import {
@@ -29,7 +30,6 @@ const AdminDashboard = () => {
 
   const COLORS = ["#B87A7D", "#DA9FA3", "#E7B6B9", "#F0CCCE", "#D2979B"];
 
-  // === FETCH DATA ===
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -53,18 +53,17 @@ const AdminDashboard = () => {
     );
   }
 
-  // ===============================
-  // 📊 METRICS
-  // ===============================
+  // ===== Metrics =====
   const totalUsers = users.length;
-  const totalClicks = clicks.filter((c) => c.type === "user" || c.type === "product").length;
 
-  // === Daily Visits ===
+  const totalClicks = clicks.reduce((sum, c) => sum + (c.clickCount || 1), 0);
+
+  // ===== Daily Views =====
   const dailyVisitsMap = clicks.reduce((acc, click) => {
-    const day = new Date(click.createdAt).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
+    if (!click.lastViewed) return acc;
+    const date = new Date(click.lastViewed);
+    if (isNaN(date)) return acc;
+    const day = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     acc[day] = (acc[day] || 0) + (click.clickCount || 1);
     return acc;
   }, {});
@@ -73,7 +72,7 @@ const AdminDashboard = () => {
     visits: dailyVisitsMap[day],
   }));
 
-  // === Category Distribution ===
+  // ===== Category Distribution =====
   const categoryMap = clicks.reduce((acc, click) => {
     const cat = click.category || "Unknown";
     acc[cat] = (acc[cat] || 0) + (click.clickCount || 1);
@@ -84,11 +83,12 @@ const AdminDashboard = () => {
     value: categoryMap[name],
   }));
 
-  // === User Growth ===
+  // ===== User Growth =====
   const userGrowthMap = users.reduce((acc, user) => {
-    const month = new Date(user.createdAt).toLocaleString("en-US", {
-      month: "short",
-    });
+    if (!user.createdAt) return acc;
+    const date = new Date(user.createdAt);
+    if (isNaN(date)) return acc;
+    const month = date.toLocaleString("en-US", { month: "short" });
     acc[month] = (acc[month] || 0) + 1;
     return acc;
   }, {});
@@ -97,14 +97,14 @@ const AdminDashboard = () => {
     users: userGrowthMap[month],
   }));
 
-  // === Top Visitors ===
+  // ===== Top Visitors =====
   const visitsByUserMap = {};
   clicks.forEach((click) => {
-    if (click.type === "user" && click.userId) {
+    if (click.type === "history" && click.userId) {
       const name = click.userId.firstName
         ? `${click.userId.firstName} ${click.userId.lastName}`
         : `User ${click.userId._id?.slice(-5)}`;
-      visitsByUserMap[name] = (visitsByUserMap[name] || 0) + 1;
+      visitsByUserMap[name] = (visitsByUserMap[name] || 0) + (click.clickCount || 1);
     }
   });
   const topVisitors = Object.keys(visitsByUserMap)
@@ -112,20 +112,16 @@ const AdminDashboard = () => {
     .sort((a, b) => b.visits - a.visits)
     .slice(0, 5);
 
-  // === MODAL HANDLERS ===
+  // ===== Modal Handlers =====
   const openModal = (type, data) => {
     setModalType(type);
     setModalData(data);
   };
-
   const closeModal = () => {
     setModalData(null);
     setModalType(null);
   };
 
-  // ===============================
-  // 💎 UI
-  // ===============================
   return (
     <div className="min-h-screen bg-white p-8">
       {/* Header */}
@@ -136,9 +132,8 @@ const AdminDashboard = () => {
         </p>
       </header>
 
-      {/* === METRICS === */}
+      {/* Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Total Users */}
         <div
           onClick={() => openModal("allUsers", users)}
           className="bg-[#F0CCCE]/20 shadow rounded p-6 flex items-center gap-4 hover:scale-105 transition cursor-pointer"
@@ -148,26 +143,20 @@ const AdminDashboard = () => {
           </div>
           <div>
             <h2 className="text-[#D2979B] font-medium mb-1">Total Users</h2>
-            <p className="text-2xl font-bold text-[#B87A7D]">
-              {totalUsers.toLocaleString()}
-            </p>
+            <p className="text-2xl font-bold text-[#B87A7D]">{totalUsers.toLocaleString()}</p>
           </div>
         </div>
 
-        {/* Total Clicks */}
         <div className="bg-[#F0CCCE]/20 shadow rounded p-6 flex items-center gap-4 hover:scale-105 transition">
           <div className="text-[#DA9FA3] text-3xl">
             <FaUserCheck />
           </div>
           <div>
             <h2 className="text-[#E7B6B9] font-medium mb-1">Total Clicks</h2>
-            <p className="text-2xl font-bold text-[#DA9FA3]">
-              {totalClicks.toLocaleString()}
-            </p>
+            <p className="text-2xl font-bold text-[#DA9FA3]">{totalClicks.toLocaleString()}</p>
           </div>
         </div>
 
-        {/* Daily Views */}
         <div className="bg-[#F0CCCE]/20 shadow rounded p-6 flex items-center gap-4 hover:scale-105 transition">
           <div className="text-[#E7B6B9] text-3xl">
             <FaChartLine />
@@ -181,9 +170,8 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* === CHARTS === */}
+      {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Daily View Trend */}
         <div className="bg-[#F0CCCE]/10 shadow rounded p-6">
           <h2 className="text-[#D2979B] font-medium mb-4">View Trend by Date</h2>
           <ResponsiveContainer width="100%" height={250}>
@@ -197,7 +185,6 @@ const AdminDashboard = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Views by Category */}
         <div className="bg-[#F0CCCE]/10 shadow rounded p-6">
           <h2 className="text-[#D2979B] font-medium mb-4">Views by Category</h2>
           <ResponsiveContainer width="100%" height={250}>
@@ -214,9 +201,8 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* === USER GROWTH & TOP VISITORS === */}
+      {/* User Growth & Top Visitors */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* User Growth */}
         <div className="bg-[#F0CCCE]/10 shadow rounded p-6">
           <h2 className="text-[#D2979B] font-medium mb-4">User Growth Trend</h2>
           <ResponsiveContainer width="100%" height={250}>
@@ -230,7 +216,6 @@ const AdminDashboard = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Top Visitors */}
         <div className="bg-[#F0CCCE]/10 shadow rounded p-6">
           <h2 className="text-[#D2979B] font-medium mb-4">Top Active Users</h2>
           <ResponsiveContainer width="100%" height={250}>
@@ -245,14 +230,11 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* === MODAL === */}
+      {/* Modal */}
       {modalData && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-xl shadow-xl w-[90%] md:w-[500px] relative">
-            <button
-              className="absolute top-3 right-3 text-[#B87A7D]"
-              onClick={closeModal}
-            >
+            <button className="absolute top-3 right-3 text-[#B87A7D]" onClick={closeModal}>
               <FaTimes />
             </button>
 
@@ -263,11 +245,13 @@ const AdminDashboard = () => {
                   {modalData.map((user) => (
                     <div key={user._id} className="border-b border-[#F0CCCE] py-2">
                       <p className="font-medium text-[#B87A7D]">
-                        {user.firstName} {user.lastName}
+                        {user.firstName || "N/A"} {user.lastName || ""}
                       </p>
-                      <p className="text-sm text-[#D2979B]">{user.email}</p>
+                      <p className="text-sm text-[#D2979B]">{user.email || "N/A"}</p>
                       <p className="text-xs text-gray-400">
-                        Joined: {new Date(user.createdAt).toLocaleDateString("en-US")}
+                        Joined: {user.createdAt && !isNaN(new Date(user.createdAt))
+                          ? new Date(user.createdAt).toLocaleDateString("en-US")
+                          : "N/A"}
                       </p>
                     </div>
                   ))}
