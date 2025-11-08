@@ -4,7 +4,6 @@ import { GoPersonFill } from "react-icons/go";
 import { FaCommentDots } from "react-icons/fa"; // chat icon
 import ChatBox from "./ChatBox"; // import your ChatBox
 
-
 function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -192,6 +191,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
                 <RegisterForm
                   setIsLoggedIn={setIsLoggedIn}
                   setIsUserPanelOpen={setIsUserPanelOpen}
+                  setActiveTab={setActiveTab}
                 />
               )}
             </>
@@ -207,7 +207,6 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
 
       {/* --- Floating Chat Bubble --- */}
       {isLoggedIn && <ChatBox />}
-
     </div>
   );
 }
@@ -276,7 +275,7 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
 }
 
 // --- Register Form ---
-function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
+function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen,setActiveTab }) {
   const [title, setTitle] = useState("Mr.");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -284,8 +283,24 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleRegister = async () => {
+    // ตรวจสอบ validation ก่อนส่ง
+    if (password.length < 8) {
+      setErrorMessage("Password must be at least 8 characters long.");
+      return;
+    }
+
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phone)) {
+      setErrorMessage("Phone number must be exactly 10 digits.");
+      return;
+    }
+
+    // ล้างข้อความ error ก่อนส่ง request
+    setErrorMessage("");
+
     try {
       const res = await fetch("http://localhost:5000/api/users/register", {
         method: "POST",
@@ -301,12 +316,16 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         }),
       });
       const data = await res.json();
+
       if (res.ok) {
-        setIsLoggedIn(true);
+        setIsLoggedIn(false); // อย่าให้ auto login
         setIsUserPanelOpen(false);
+        alert("Registration successful! Please login.");
+        // หรือถ้าอยากพาไปหน้า login
+        setActiveTab("login");
       } else alert(data.message);
     } catch (err) {
-      console.error("Register error:", err);
+      console.error("Registration error:", err);
     }
   };
 
@@ -326,6 +345,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
           </label>
         ))}
       </div>
+
       <label className="block text-sm mb-1">First Name *</label>
       <input
         type="text"
@@ -334,6 +354,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         value={firstName}
         onChange={(e) => setFirstName(e.target.value)}
       />
+
       <label className="block text-sm mt-6 mb-1">Last Name *</label>
       <input
         type="text"
@@ -342,6 +363,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         value={lastName}
         onChange={(e) => setLastName(e.target.value)}
       />
+
       <label className="block text-sm mt-6 mb-1">Age *</label>
       <input
         type="number"
@@ -350,6 +372,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         value={age}
         onChange={(e) => setAge(e.target.value)}
       />
+
       <label className="block text-sm mt-6 mb-1">Email *</label>
       <input
         type="email"
@@ -358,6 +381,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
+
       <label className="block text-sm mt-6 mb-1">Password *</label>
       <input
         type="password"
@@ -366,6 +390,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
+
       <label className="block text-sm mt-6 mb-1">Phone Number *</label>
       <input
         type="text"
@@ -374,6 +399,12 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen }) {
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
       />
+
+      {/* --- Error Message --- */}
+      {errorMessage && (
+        <p className="text-red-600 text-sm mt-1">{errorMessage}</p>
+      )}
+
       <button
         onClick={handleRegister}
         className="w-full border border-[#6B4A4A] text-[#6B4A4A] mt-8 py-3 tracking-wide uppercase font-medium hover:bg-[#6B4A4A] hover:text-[#FCE4E4] transition"
@@ -415,7 +446,9 @@ function UserInfo({ userInfo, setIsLoggedIn, setIsUserPanelOpen }) {
             <p className="text-xs text-[#8b6f6f] uppercase tracking-wider">
               {item.label}
             </p>
-            <p className="text-lg font-medium text-[#5a3a3a] mt-1">{item.value}</p>
+            <p className="text-lg font-medium text-[#5a3a3a] mt-1">
+              {item.value}
+            </p>
           </div>
         ))}
       </div>

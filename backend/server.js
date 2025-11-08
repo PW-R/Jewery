@@ -34,7 +34,7 @@ app.use("/api/clicks", clickRoutes);
 app.use("/api/chats", chatRoutes); // <-- Register chat routes
 
 /* ==========================
-   💾 DATABASE CONNECTION
+   DATABASE CONNECTION
 ========================== */
 const startServer = async () => {
   try {

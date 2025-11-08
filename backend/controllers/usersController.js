@@ -31,21 +31,49 @@ export const registerUser = async (req, res) => {
   try {
     const { title, firstName, lastName, age, email, password, phone } = req.body;
 
-    // Check if user already exists
+    // Check if all required fields are provided
+    if (!title || !firstName || !lastName || !age || !email || !password || !phone) {
+      return res.status(400).json({ message: "Please fill in all required fields." });
+    }
+
+    // ✅ Validate password length
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters long." });
+    }
+
+    // ✅ Validate phone number (must be exactly 10 digits)
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ message: "Phone number must be exactly 10 digits." });
+    }
+
+    // Check for existing email
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'Email already registered' });
+    if (existingUser) {
+      return res.status(400).json({ message: "This email is already registered." });
+    }
 
     // Create new user
-    const newUser = new User({ title, firstName, lastName, age, email, password, phone,
-      role: "user" });
+    const newUser = new User({
+      title,
+      firstName,
+      lastName,
+      age,
+      email,
+      password,
+      phone,
+      role: "user",
+    });
+
     await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(201).json({ message: "User registered successfully." });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: err.message || 'Server error' });
+    res.status(500).json({ message: err.message || "Server error." });
   }
 };
+
 
 // === LOGIN ===
 export const loginUser = async (req, res) => {
