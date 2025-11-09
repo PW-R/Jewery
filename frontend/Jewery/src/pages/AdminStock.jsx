@@ -30,6 +30,8 @@ const AdminStock = () => {
     images: [],
   });
   const [imagePreview, setImagePreview] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // --- Fetch products
   const fetchProducts = async () => {
@@ -175,9 +177,34 @@ const AdminStock = () => {
       console.error("Error saving product:", err);
     }
   };
+  // ---
+  // คำนวณสินค้าหลังกรองตาม search
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.code.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProducts.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  // จำนวนหน้าทั้งหมด
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // ฟังก์ชันเปลี่ยนหน้า
+  const goToPage = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#FFF8F8] p-8">
+    <div className="min-h-screen bg-[#ffecec] p-8">
       {/* Header */}
       <header className="mb-6 flex flex-col md:flex-row items-center justify-between gap-3">
         <h1 className="text-3xl font-bold text-[#B87A7D]">Stock Management</h1>
@@ -232,63 +259,100 @@ const AdminStock = () => {
                   Loading...
                 </td>
               </tr>
-            ) : products.length === 0 ? (
+            ) : filteredProducts.length === 0 ? (
               <tr>
                 <td colSpan="7" className="p-4 text-center text-gray-500">
                   No products found.
                 </td>
               </tr>
             ) : (
-              products
-                .filter(
-                  (p) =>
-                    p.name.toLowerCase().includes(search.toLowerCase()) ||
-                    p.code.toLowerCase().includes(search.toLowerCase())
-                )
-                .map((product) => (
-                  <tr
-                    key={product._id}
-                    className="border-b hover:bg-[#F0CCCE]/20 transition"
-                  >
-                    <td className="p-3">
-                      {product.images && product.images[0] ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-[#E7B6B9] rounded flex items-center justify-center text-white text-xs">
-                          No Img
-                        </div>
-                      )}
-                    </td>
-                    <td className="p-3 text-[#B87A7D]">{product.code}</td>
-                    <td className="p-3 text-[#DA9FA3]">{product.name}</td>
-                    <td className="p-3 text-[#E7B6B9]">{product.category}</td>
-                    <td className="p-3 text-[#D2979B]">
-                      ${product.price.toFixed(2)}
-                    </td>
-                    <td className="p-3 text-[#B87A7D]">{product.stock}</td>
-                    <td className="p-3 flex gap-2">
-                      <button
-                        className="text-[#DA9FA3] hover:text-[#B87A7D] transition"
-                        onClick={() => openModal(product)}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        className="text-[#E7B6B9] hover:text-[#D2979B] transition"
-                        onClick={() => handleDelete(product._id)}
-                      >
-                        <FaTrash />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+              currentItems.map((product) => (
+                <tr
+                  key={product._id}
+                  className="border-b hover:bg-[#F0CCCE]/20 transition"
+                >
+                  <td className="p-3">
+                    {product.images && product.images[0] ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-[#E7B6B9] rounded flex items-center justify-center text-white text-xs">
+                        No Img
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-3 text-[#B87A7D]">{product.code}</td>
+                  <td className="p-3 text-[#DA9FA3]">{product.name}</td>
+                  <td className="p-3 text-[#E7B6B9]">{product.category}</td>
+                  <td className="p-3 text-[#D2979B]">
+                    ${product.price.toFixed(2)}
+                  </td>
+                  <td className="p-3 text-[#B87A7D]">{product.stock}</td>
+                  <td className="p-3 flex gap-2">
+                    <button
+                      className="text-[#DA9FA3] hover:text-[#B87A7D] transition"
+                      onClick={() => openModal(product)}
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      className="text-[#E7B6B9] hover:text-[#D2979B] transition"
+                      onClick={() => handleDelete(product._id)}
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
+
+        {/* นับหน้า */}
+        {!loading && filteredProducts.length > 0 && (
+          <div className="flex justify-center items-center gap-2 py-4 flex-wrap">
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                currentPage === 1
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  : "bg-[#DA9FA3] text-white hover:bg-[#E7B6B9]"
+              }`}
+            >
+              Prev
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => goToPage(i + 1)}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  currentPage === i + 1
+                    ? "bg-[#B87A7D] text-white"
+                    : "bg-[#F0CCCE] text-[#B87A7D] hover:bg-[#E7B6B9]"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                currentPage === totalPages
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  : "bg-[#DA9FA3] text-white hover:bg-[#E7B6B9]"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Modal */}
@@ -382,12 +446,22 @@ const AdminStock = () => {
                 className="border p-2 rounded w-full border-[#D2979B] focus:outline-none focus:ring-2 focus:ring-[#B87A7D]"
               />
 
-              <input
-                type="file"
-                multiple
-                onChange={handleImageChange}
-                className="border p-2 rounded w-full border-[#D2979B]"
-              />
+              <div className="border-2 border-dashed border-[#D2979B] rounded-lg p-6 text-center cursor-pointer hover:bg-[#FFF1F2] transition relative">
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleImageChange}
+                  id="file-upload"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <p className="text-[#B87A7D] font-medium">
+                  <span className="text-3xl block mb-2"></span>
+                  Click or Drag & Drop Images Here
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  (JPG, JPEG, PNG, WEBP)
+                </p>
+              </div>
 
               {imagePreview.length > 0 && (
                 <div className="flex gap-2 mt-2 overflow-x-auto py-2">

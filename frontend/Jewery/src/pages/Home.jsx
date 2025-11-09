@@ -81,43 +81,46 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 text-center">
           <div className="space-y-4">
             <img
-              src="https://cdn-icons-png.flaticon.com/512/891/891462.png"
-              alt="Fast Shipping"
+              src="https://cdn-icons-png.flaticon.com/512/455/455705.png"
+              alt="Chat Support"
               className="w-12 mx-auto opacity-80"
             />
             <h3 className="text-lg font-semibold text-[#4a2c2b]">
-              Fast Shipping
+              Chat with Us Anytime
             </h3>
             <p className="text-[#7d5f5f] text-sm">
-              Receive your order quickly with express worldwide delivery.
+              Have a question? Our friendly team is always ready to assist you
+              via chat. 
             </p>
           </div>
 
           <div className="space-y-4">
             <img
-              src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-              alt="Excellent Quality"
+              src="https://cdn-icons-png.flaticon.com/512/190/190411.png"
+              alt="Curated Designs"
               className="w-12 mx-auto opacity-80"
             />
             <h3 className="text-lg font-semibold text-[#4a2c2b]">
-              Excellent Quality
+              Carefully Curated Designs
             </h3>
             <p className="text-[#7d5f5f] text-sm">
-              Our jewelry pieces are made with precision and care.
+              Each jewelry piece is handpicked with love — elegant, timeless,
+              and unique. 
             </p>
           </div>
 
           <div className="space-y-4">
             <img
-              src="https://cdn-icons-png.flaticon.com/512/2910/2910766.png"
-              alt="Gift Packaging"
+              src="https://cdn-icons-png.flaticon.com/512/747/747376.png"
+              alt="Detailed View"
               className="w-12 mx-auto opacity-80"
             />
             <h3 className="text-lg font-semibold text-[#4a2c2b]">
-              Gift Packaging
+              Explore Every Detail
             </h3>
             <p className="text-[#7d5f5f] text-sm">
-              Every piece comes in luxurious gift-ready packaging.
+              Take a closer look at each piece before you decide — clear images
+              and full details await. 
             </p>
           </div>
         </div>
@@ -242,7 +245,7 @@ export default function Home() {
             <ul className="space-y-3 text-sm text-[#e8c7b0]">
               <li>📍 Bangkok, Thailand</li>
               <li>📞 +66 99-999-9999</li>
-              <li>📧 support@aurumluxe.com</li>
+              <li>📧 support@LURICE.com</li>
             </ul>
           </div>
         </div>

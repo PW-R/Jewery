@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { getChatsByAdmin, adminReply } from "../api/chatApi";
-import { FaTimes, FaPaperPlane } from "react-icons/fa";
+import { FaTimes, FaPaperPlane, FaComments } from "react-icons/fa";
 import io from "socket.io-client";
 
 const socket = io("http://localhost:5000");
@@ -50,23 +50,13 @@ function AdminChatPanel() {
     const handleReceive = (newMsg) => {
       setSelectedChat((prev) => {
         if (!prev) return prev;
-        const last = prev.messages.at(-1);
-        if (last?.text === newMsg.text && last?.sender === newMsg.sender) return prev;
         return { ...prev, messages: [...prev.messages, newMsg] };
       });
 
       setChats((prev) =>
         prev.map((c) =>
           selectedChat && c._id === selectedChat._id
-            ? {
-                ...c,
-                messages:
-                  c.messages?.some(
-                    (m) => m.text === newMsg.text && m.sender === newMsg.sender
-                  )
-                    ? c.messages
-                    : [...c.messages, newMsg],
-              }
+            ? { ...c, messages: [...c.messages, newMsg] }
             : c
         )
       );
@@ -115,103 +105,142 @@ function AdminChatPanel() {
     }
   };
 
-  if (loading) return <p className="p-6">Loading chats...</p>;
+  // === Loading ===
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#FFF8F8]">
+        <p className="text-[#B87A7D] text-lg font-medium animate-pulse">
+          Loading chats...
+        </p>
+      </div>
+    );
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-[#FFF8F8]">
       {/* Sidebar */}
-      <div className="w-1/4 border-r overflow-y-auto bg-gray-100 p-4">
-        <h2 className="text-xl font-semibold mb-4">Your Chats</h2>
-        {chats.map((chat) => (
-          <div
-            key={chat._id}
-            className={`p-3 rounded mb-2 cursor-pointer ${
-              selectedChat?._id === chat._id
-                ? "bg-[#B87A7D] text-white"
-                : "bg-white"
-            }`}
-            onClick={() => {
-              if (!selectedChat || selectedChat._id !== chat._id) {
-                setSelectedChat(chat);
-                socket.emit(
-                  "join_room",
-                  `room_${chat.customerId._id || chat.customerId}`
-                );
-              }
-            }}
-          >
-            <p className="font-medium">
-              {chat.customerId?.firstName
-                ? `${chat.customerId.firstName} ${chat.customerId.lastName}`
-                : "Customer"}
-            </p>
-            <p className="text-sm truncate">
-              {chat.messages?.[chat.messages.length - 1]?.text ||
-                "No messages yet"}
-            </p>
+      <div className="w-1/4 border-r border-[#F0CCCE] bg-white shadow-sm p-4 overflow-y-auto">
+        <h2 className="text-2xl font-bold text-[#B87A7D] mb-4">
+          Your Chats
+        </h2>
+
+        {chats.length === 0 ? (
+          <div className="flex flex-col items-center justify-center mt-20 text-center text-gray-500">
+            <FaComments className="text-4xl text-[#E7B6B9] mb-2" />
+            <p>No active chats yet.</p>
           </div>
-        ))}
+        ) : (
+          chats.map((chat) => (
+            <div
+              key={chat._id}
+              className={`p-3 rounded-lg mb-2 cursor-pointer transition-all shadow-sm ${
+                selectedChat?._id === chat._id
+                  ? "bg-[#B87A7D] text-white"
+                  : "bg-[#FFF8F8] hover:bg-[#F0CCCE]/60"
+              }`}
+              onClick={() => {
+                if (!selectedChat || selectedChat._id !== chat._id) {
+                  setSelectedChat(chat);
+                  socket.emit(
+                    "join_room",
+                    `room_${chat.customerId._id || chat.customerId}`
+                  );
+                }
+              }}
+            >
+              <p className="font-medium">
+                {chat.customerId?.firstName
+                  ? `${chat.customerId.firstName} ${chat.customerId.lastName}`
+                  : "Customer"}
+              </p>
+              <p
+                className={`text-sm truncate ${
+                  selectedChat?._id === chat._id
+                    ? "text-[#FFF8F8]"
+                    : "text-gray-500"
+                }`}
+              >
+                {chat.messages?.[chat.messages.length - 1]?.text ||
+                  "No messages yet"}
+              </p>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Chat Window */}
-      <div className="flex-1 flex flex-col bg-white">
+      <div className="flex-1 flex flex-col">
         {selectedChat ? (
           <>
-            <div className="flex justify-between items-center p-4 border-b">
-              <p className="font-semibold">
-                Chat with{" "}
-                {selectedChat.customerId?.firstName ||
-                  selectedChat.customerId ||
-                  "Customer"}
-              </p>
+            {/* Header */}
+            <div className="flex justify-between items-center px-6 py-4 bg-white border-b border-[#F0CCCE] shadow-sm">
+              <div>
+                <p className="text-lg font-semibold text-[#B87A7D]">
+                  Chat with{" "}
+                  {selectedChat.customerId?.firstName ||
+                    selectedChat.customerId ||
+                    "Customer"}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {selectedChat.customerId?.email || "—"}
+                </p>
+              </div>
               <FaTimes
-                className="cursor-pointer text-gray-500 hover:text-gray-700"
+                className="cursor-pointer text-gray-400 hover:text-[#DA9FA3] transition"
                 onClick={() => setSelectedChat(null)}
               />
             </div>
 
-            <div className="flex-1 p-4 overflow-y-auto space-y-2">
+            {/* Messages */}
+            <div className="flex-1 p-6 overflow-y-auto space-y-3 bg-[#FFF8F8]">
               {selectedChat.messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`${
-                    msg.sender === "admin" ? "text-right" : "text-left"
+                  className={`flex ${
+                    msg.sender === "admin"
+                      ? "justify-end"
+                      : "justify-start"
                   }`}
                 >
-                  <span
-                    className={`inline-block px-3 py-2 rounded-lg text-sm ${
+                  <div
+                    className={`px-4 py-2 rounded-2xl shadow-sm text-sm max-w-xs break-words ${
                       msg.sender === "admin"
-                        ? "bg-[#B87A7D] text-white"
-                        : "bg-gray-200 text-gray-800"
+                        ? "bg-[#B87A7D] text-white rounded-br-none"
+                        : "bg-white text-gray-700 border border-[#F0CCCE] rounded-bl-none"
                     }`}
                   >
                     {msg.text}
-                  </span>
+                  </div>
                 </div>
               ))}
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="flex p-4 border-t">
+            {/* Input */}
+            <div className="p-4 bg-white border-t border-[#F0CCCE] flex items-center">
               <input
                 type="text"
-                className="flex-1 border rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#B87A7D]"
+                className="flex-1 border border-[#E7B6B9] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#DA9FA3]"
                 placeholder="Type a message..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
               />
               <button
-                className="ml-2 px-4 py-2 bg-[#B87A7D] text-white rounded-xl hover:bg-[#DA9FA3] transition flex items-center gap-2"
+                className="ml-3 px-5 py-2 bg-[#DA9FA3] text-white rounded-full hover:bg-[#E7B6B9] transition flex items-center gap-2 shadow-sm"
                 onClick={handleSend}
               >
-                <FaPaperPlane />
+                <FaPaperPlane className="text-sm" />
                 Send
               </button>
             </div>
           </>
         ) : (
-          <p className="p-6 text-gray-500">Select a chat to start messaging</p>
+          <div className="flex flex-col items-center justify-center h-full text-gray-500">
+            <FaComments className="text-6xl text-[#E7B6B9] mb-4" />
+            <p className="text-lg font-medium text-[#B87A7D]">
+              Select a chat to start messaging
+            </p>
+          </div>
         )}
       </div>
     </div>

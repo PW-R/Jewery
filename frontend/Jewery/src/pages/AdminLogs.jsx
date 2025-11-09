@@ -66,7 +66,7 @@ const AdminLogs = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <h2 className="text-2xl font-semibold mb-3 md:mb-0">
-          📊 Admin Analytics Logs
+          Admin Analytics Logs
         </h2>
         {/* Filter Buttons */}
         <div className="flex gap-3">
