@@ -1,69 +1,47 @@
+// src/api/chatApi.js
 import axios from "axios";
 
-const API_BASE = "/api/chats";
+const API_URL = "http://localhost:5000/api/chats";
 
-// ==== CREATE OR INIT CHAT ====
-export const initChatForUser = async (userId) => {
-  try {
-    const res = await axios.post(`${API_BASE}/init`, { userId });
-    return res.data;
-  } catch (err) {
-    console.error("Error initializing chat:", err);
-    throw err;
-  }
+// ===== ลูกค้าส่งข้อความ =====
+export const sendCustomerMessage = async (customerId, message) => {
+  const res = await axios.post(`${API_URL}/send`, { customerId, message });
+  return res.data;
 };
 
-// ==== GET CHAT HISTORY ====
-export const getChatByUser = async (userId) => {
-  try {
-    const res = await axios.get(`${API_BASE}/user/${userId}`);
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching chat history:", err);
-    throw err;
-  }
+// ===== แอดมินตอบกลับ =====
+export const adminReply = async (chatId, adminId, message) => {
+  const res = await axios.post(`${API_URL}/reply`, { chatId, adminId, message });
+  return res.data;
 };
 
-// ==== SEND MESSAGE ====
-export const sendMessage = async ({ chatId, sender, message }) => {
-  try {
-    const res = await axios.post(`${API_BASE}/message`, { chatId, sender, message });
-    return res.data;
-  } catch (err) {
-    console.error("Error sending message:", err);
-    throw err;
-  }
+// ===== ดึงแชทของแอดมินคนนั้น =====
+export const getChatsByAdmin = async (adminId) => {
+  const res = await axios.get(`${API_URL}/admin/${adminId}`);
+  return res.data;
 };
 
-// ==== ADMIN ACCEPT CHAT ====
-export const acceptChat = async ({ chatId, adminId }) => {
-  try {
-    const res = await axios.post(`${API_BASE}/accept`, { chatId, adminId });
-    return res.data;
-  } catch (err) {
-    console.error("Error accepting chat:", err);
-    throw err;
-  }
+// ===== ดึงแชทของลูกค้าคนเดียว =====
+export const getChatByCustomer = async (customerId) => {
+  const res = await axios.get(`${API_URL}/customer/${customerId}`);
+  return res.data;
 };
 
-// ==== ADMIN: GET PENDING CHATS ====
-export const getPendingChats = async () => {
-  try {
-    const res = await axios.get(`${API_BASE}/pending`);
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching pending chats:", err);
-    throw err;
-  }
+// ===== ดึงแชททั้งหมด (ถ้าต้องการ) =====
+export const getAllChats = async () => {
+  const res = await axios.get(`${API_URL}`);
+  return res.data;
 };
 
-// ==== ADMIN: GET CHATS ASSIGNED TO ADMIN ====
-export const getAdminChats = async (adminId) => {
-  try {
-    const res = await axios.get(`${API_BASE}/admin/${adminId}`);
-    return res.data;
-  } catch (err) {
-    console.error("Error fetching admin chats:", err);
-    throw err;
-  }
+// ===== ปิดการสนทนา =====
+export const closeChat = async (chatId) => {
+  const res = await axios.put(`${API_URL}/close/${chatId}`);
+  return res.data;
+};
+
+
+// pending changes to other files
+export const acceptChat = async (chatId, adminId) => {
+  const res = await axios.put(`${API_URL}/accept/${chatId}`, { adminId });
+  return res.data;
 };

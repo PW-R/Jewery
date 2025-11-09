@@ -1,69 +1,106 @@
 import { useState, useEffect, useRef } from "react";
 import { FaTimes, FaCommentDots } from "react-icons/fa";
-import { initChatForUser, getChatByUser, sendMessage } from "../api/chatApi"; // adjust path
+import io from "socket.io-client";
+import { sendCustomerMessage, getChatByCustomer } from "../api/chatApi";
 
-function ChatBox({ userId }) {
+const socket = io("http://localhost:5000");
+
+function CustomerChatBox() {
+  const customerId = localStorage.getItem("userId");
   const [isOpen, setIsOpen] = useState(false);
-  const [chatId, setChatId] = useState(null);
+  const [chat, setChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isWaiting, setIsWaiting] = useState(false);
-
   const messagesEndRef = useRef(null);
 
-  // Scroll to bottom whenever messages change
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(scrollToBottom, [messages, isWaiting]);
-
-  // Initialize chat when chat box opens
+  // ✅ scroll อัตโนมัติทุกครั้งที่มีข้อความใหม่
   useEffect(() => {
-    if (!isOpen || !userId) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-    const initChat = async () => {
-      try {
-        const chat = await initChatForUser(userId);
-        setChatId(chat._id);
+  // ✅ เข้าห้องแค่ครั้งเดียว (ไม่ผูกกับ isOpen)
+  useEffect(() => {
+    if (!customerId) return;
 
-        // Load existing messages
-        const history = await getChatByUser(userId);
-        setMessages(history.messages || []);
-      } catch (err) {
-        console.error("Failed to initialize chat:", err);
-      }
+    const roomId = `room_${customerId}`;
+    socket.emit("join_room", roomId);
+    console.log("🟢 Joined room:", roomId);
+
+    // cleanup ตอน component หาย (optional)
+    return () => {
+      socket.emit("leave_room", roomId);
+      console.log("🚪 Left room:", roomId);
     };
+  }, [customerId]);
 
-    initChat();
-  }, [isOpen, userId]);
+  // ✅ โหลดประวัติและฟังข้อความใหม่ เฉพาะตอนเปิดกล่อง
+  useEffect(() => {
+  if (!isOpen || !customerId) return;
+
+  const fetchChatHistory = async () => {
+  try {
+    const data = await getChatByCustomer(customerId);
+    if (data?._id) {
+      setChat(data);
+      // ✅ โหลดประวัติแค่ครั้งแรกเท่านั้น
+      setMessages((prev) => {
+        if (prev.length > 0) return prev; // ถ้ามีข้อความอยู่แล้ว ไม่ต้องทับ
+        return data.messages || [];
+      });
+    }
+  } catch (err) {
+    console.error("Failed to load chat history:", err);
+  }
+};
+
+  // ✅ ฟังเฉพาะข้อความใหม่ (newMsg)
+  const handleReceive = (newMsg) => {
+  setMessages((prev) => {
+    const last = prev.at(-1);
+    if (last?.text === newMsg.text && last?.sender === newMsg.sender) return prev; 
+    return [...prev, newMsg];
+  });
+};
+
+  socket.on("receive_message", handleReceive);
+
+  return () => {
+    socket.off("receive_message", handleReceive);
+  };
+}, [isOpen, customerId]);
 
   const handleSend = async () => {
-    if (!input.trim() || !chatId) return;
+    if (!input.trim() || !customerId) return;
 
-    const userMessage = input;
+    const newMessage = {
+      sender: "customer",
+      text: input.trim(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
     setInput("");
-
-    // Add user message immediately
-    setMessages(prev => [...prev, { from: "user", text: userMessage }]);
     setIsWaiting(true);
 
     try {
-      const res = await sendMessage({ chatId, sender: "user", message: userMessage });
+      await sendCustomerMessage(customerId, input.trim());
 
-      // Add shop reply if API returns it
-      if (res.reply) {
-        setMessages(prev => [...prev, { from: "shop", text: res.reply }]);
-      }
+      socket.emit("send_message", {
+        roomId: `room_${customerId}`,
+        customerId,
+        message: input.trim(),
+      });
     } catch (err) {
       console.error("Error sending message:", err);
-      setMessages(prev => [...prev, { from: "shop", text: "Failed to send message" }]);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "system", text: "❌ Failed to send message" },
+      ]);
     } finally {
       setIsWaiting(false);
     }
   };
 
-  // Chat button component
   const ChatButton = ({ onClick }) => (
     <button
       onClick={onClick}
@@ -74,47 +111,55 @@ function ChatBox({ userId }) {
     </button>
   );
 
+  if (!customerId)
+    return (
+      <div className="fixed bottom-24 right-6 w-80 bg-white border rounded-xl shadow-lg p-4 text-center">
+        <p className="text-gray-700">⚠️ Please log in to start a chat.</p>
+      </div>
+    );
+
   return (
     <>
       <ChatButton onClick={() => setIsOpen(!isOpen)} />
-
       {isOpen && (
         <div className="fixed bottom-24 right-6 w-80 h-96 bg-white border rounded-xl shadow-lg flex flex-col z-50 overflow-hidden">
-          {/* Header */}
           <div className="flex justify-between items-center p-3 bg-[#B87A7D] text-white">
             <span>Chat with us</span>
-            <FaTimes className="cursor-pointer" onClick={() => setIsOpen(false)} />
+            <FaTimes
+              className="cursor-pointer"
+              onClick={() => setIsOpen(false)}
+            />
           </div>
 
-          {/* Messages */}
           <div className="flex-1 p-3 overflow-y-auto space-y-2">
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`${msg.from === "user" ? "text-right" : "text-left"}`}
+                className={`${
+                  msg.sender === "customer" ? "text-right" : "text-left"
+                }`}
               >
                 <span
                   className={`inline-block px-3 py-2 rounded-lg text-sm ${
-                    msg.from === "user"
+                    msg.sender === "customer"
                       ? "bg-[#B87A7D] text-white"
-                      : "bg-gray-200 text-gray-800"
+                      : msg.sender === "admin"
+                      ? "bg-gray-200 text-gray-800"
+                      : "text-red-500"
                   }`}
                 >
                   {msg.text}
                 </span>
               </div>
             ))}
-
             {isWaiting && (
               <div className="text-left text-gray-500 text-sm italic">
-                Waiting for shop response...
+                Waiting for admin response...
               </div>
             )}
-
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
           <div className="flex p-3 border-t">
             <input
               type="text"
@@ -137,4 +182,4 @@ function ChatBox({ userId }) {
   );
 }
 
-export default ChatBox;
+export default CustomerChatBox;
