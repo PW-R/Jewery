@@ -34,7 +34,7 @@ export const adminReply = async (req, res) => {
     const chat = await Chat.findById(chatId);
     if (!chat) return res.status(404).json({ message: "Chat not found" });
 
-    // ถ้ายังไม่มีแอดมินประจำห้อง → ผูกคนนี้เป็นคนแรก
+    // ถ้ายังไม่มีแอดมินประจำห้อง ผูกคนนี้เป็นคนแรก
     if (!chat.isAssigned) {
       chat.adminId = adminId;
       chat.isAssigned = true;

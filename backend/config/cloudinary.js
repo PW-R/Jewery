@@ -4,7 +4,7 @@ dotenv.config();
 import { v2 as cloudinaryLib } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 
-console.log("🌥️ Cloudinary ENV:", {
+console.log("Cloudinary ENV:", {
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ? "✅ Loaded" : "❌ Missing",
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? "✅ Loaded" : "❌ Missing",

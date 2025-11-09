@@ -27,48 +27,55 @@ function CustomerChatBox() {
     socket.emit("join_room", roomId);
     console.log("🟢 Joined room:", roomId);
 
-    // cleanup ตอน component หาย (optional)
     return () => {
       socket.emit("leave_room", roomId);
       console.log("🚪 Left room:", roomId);
     };
   }, [customerId]);
 
-  // ✅ โหลดประวัติและฟังข้อความใหม่ เฉพาะตอนเปิดกล่อง
+  // ✅ โหลดประวัติแชททันทีหลัง login (ไม่ต้องเปิดกล่อง)
   useEffect(() => {
-  if (!isOpen || !customerId) return;
+    if (!customerId) return;
 
-  const fetchChatHistory = async () => {
-  try {
-    const data = await getChatByCustomer(customerId);
-    if (data?._id) {
-      setChat(data);
-      // ✅ โหลดประวัติแค่ครั้งแรกเท่านั้น
+    const loadHistory = async () => {
+      try {
+        const data = await getChatByCustomer(customerId);
+        if (data?._id) {
+          setChat(data);
+          setMessages(data.messages || []);
+          console.log("📜 Loaded chat history on login:", data.messages.length);
+        } else {
+          setMessages([]); // ไม่มีแชทเก่า
+        }
+      } catch (err) {
+        console.error("❌ Failed to load chat history:", err);
+      }
+    };
+
+    loadHistory();
+  }, [customerId]);
+
+  // ✅ ฟังข้อความใหม่ (ตลอดเวลา ไม่ต้องรอเปิดกล่อง)
+  useEffect(() => {
+    if (!customerId) return;
+
+    const handleReceive = (newMsg) => {
       setMessages((prev) => {
-        if (prev.length > 0) return prev; // ถ้ามีข้อความอยู่แล้ว ไม่ต้องทับ
-        return data.messages || [];
+        const last = prev.at(-1);
+        if (
+          last?.text === newMsg.text &&
+          last?.sender === newMsg.sender &&
+          Math.abs(new Date(newMsg.timestamp) - new Date(last.timestamp)) < 1000
+        ) {
+          return prev; // ✅ กันซ้ำภายใน 1 วิ
+        }
+        return [...prev, newMsg];
       });
-    }
-  } catch (err) {
-    console.error("Failed to load chat history:", err);
-  }
-};
+    };
 
-  // ✅ ฟังเฉพาะข้อความใหม่ (newMsg)
-  const handleReceive = (newMsg) => {
-  setMessages((prev) => {
-    const last = prev.at(-1);
-    if (last?.text === newMsg.text && last?.sender === newMsg.sender) return prev; 
-    return [...prev, newMsg];
-  });
-};
-
-  socket.on("receive_message", handleReceive);
-
-  return () => {
-    socket.off("receive_message", handleReceive);
-  };
-}, [isOpen, customerId]);
+    socket.on("receive_message", handleReceive);
+    return () => socket.off("receive_message", handleReceive);
+  }, [customerId]);
 
   const handleSend = async () => {
     if (!input.trim() || !customerId) return;
@@ -76,6 +83,7 @@ function CustomerChatBox() {
     const newMessage = {
       sender: "customer",
       text: input.trim(),
+      timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, newMessage]);
@@ -84,7 +92,6 @@ function CustomerChatBox() {
 
     try {
       await sendCustomerMessage(customerId, input.trim());
-
       socket.emit("send_message", {
         roomId: `room_${customerId}`,
         customerId,
@@ -132,26 +139,32 @@ function CustomerChatBox() {
           </div>
 
           <div className="flex-1 p-3 overflow-y-auto space-y-2">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`${
-                  msg.sender === "customer" ? "text-right" : "text-left"
-                }`}
-              >
-                <span
-                  className={`inline-block px-3 py-2 rounded-lg text-sm ${
-                    msg.sender === "customer"
-                      ? "bg-[#B87A7D] text-white"
-                      : msg.sender === "admin"
-                      ? "bg-gray-200 text-gray-800"
-                      : "text-red-500"
+            {messages.length === 0 ? (
+              <p className="text-center text-gray-400 text-sm mt-10">
+                No previous messages
+              </p>
+            ) : (
+              messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`${
+                    msg.sender === "customer" ? "text-right" : "text-left"
                   }`}
                 >
-                  {msg.text}
-                </span>
-              </div>
-            ))}
+                  <span
+                    className={`inline-block px-3 py-2 rounded-lg text-sm ${
+                      msg.sender === "customer"
+                        ? "bg-[#B87A7D] text-white"
+                        : msg.sender === "admin"
+                        ? "bg-gray-200 text-gray-800"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {msg.text}
+                  </span>
+                </div>
+              ))
+            )}
             {isWaiting && (
               <div className="text-left text-gray-500 text-sm italic">
                 Waiting for admin response...

@@ -174,7 +174,7 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// === DELETE SINGLE IMAGE (Cloudinary + DB) ===
+// === DELETE SINGLE IMAGE ยังไม่ได้เอามาใช้
 export const deleteSingleImage = async (req, res) => {
   try {
     const { url } = req.body;

@@ -50,17 +50,31 @@ function AdminChatPanel() {
     const handleReceive = (newMsg) => {
       setSelectedChat((prev) => {
         if (!prev) return prev;
+        const last = prev.messages.at(-1);
+        if (last?.text === newMsg.text && last?.sender === newMsg.sender) return prev;
         return { ...prev, messages: [...prev.messages, newMsg] };
       });
 
       setChats((prev) =>
         prev.map((c) =>
           selectedChat && c._id === selectedChat._id
-            ? { ...c, messages: [...c.messages, newMsg] }
+            ? {
+                ...c,
+                messages:
+                  c.messages?.some(
+                    (m) => m.text === newMsg.text && m.sender === newMsg.sender
+                  )
+                    ? c.messages
+                    : [...c.messages, newMsg],
+              }
             : c
         )
       );
     };
+
+    // ป้องกันผูกซ้ำ
+    socket.off("new_customer_chat");
+    socket.off("receive_message");
 
     socket.on("new_customer_chat", handleNewChat);
     socket.on("receive_message", handleReceive);
@@ -69,18 +83,19 @@ function AdminChatPanel() {
       socket.off("new_customer_chat", handleNewChat);
       socket.off("receive_message", handleReceive);
     };
-  }, [adminId, selectedChat?._id]);
+  }, [adminId]);
 
+  // === ส่งข้อความ ===
   const handleSend = async () => {
     if (!input.trim() || !selectedChat) return;
     const messageText = input.trim();
     setInput("");
 
-    const newMsg = { sender: "admin", text: messageText };
-
     try {
+      // บันทึกลงฐานข้อมูลก่อน
       await adminReply(selectedChat._id, adminId, messageText);
 
+      // ส่ง socket ให้ลูกค้า
       socket.emit("admin_reply", {
         roomId: `room_${selectedChat.customerId._id || selectedChat.customerId}`,
         chatId: selectedChat._id,
@@ -88,18 +103,8 @@ function AdminChatPanel() {
         message: messageText,
       });
 
-      setSelectedChat((prev) => ({
-        ...prev,
-        messages: [...prev.messages, newMsg],
-      }));
-
-      setChats((prev) =>
-        prev.map((c) =>
-          c._id === selectedChat._id
-            ? { ...c, messages: [...c.messages, newMsg] }
-            : c
-        )
-      );
+      // ❌ ไม่ต้องเพิ่มข้อความใน state เอง
+      // เพราะ socket.receive_message จะอัปเดตให้อัตโนมัติ
     } catch (err) {
       console.error("Error sending message:", err);
     }
@@ -119,9 +124,7 @@ function AdminChatPanel() {
     <div className="flex h-screen bg-[#FFF8F8]">
       {/* Sidebar */}
       <div className="w-1/4 border-r border-[#F0CCCE] bg-white shadow-sm p-4 overflow-y-auto">
-        <h2 className="text-2xl font-bold text-[#B87A7D] mb-4">
-          Your Chats
-        </h2>
+        <h2 className="text-2xl font-bold text-[#B87A7D] mb-4">Your Chats</h2>
 
         {chats.length === 0 ? (
           <div className="flex flex-col items-center justify-center mt-20 text-center text-gray-500">
@@ -196,9 +199,7 @@ function AdminChatPanel() {
                 <div
                   key={idx}
                   className={`flex ${
-                    msg.sender === "admin"
-                      ? "justify-end"
-                      : "justify-start"
+                    msg.sender === "admin" ? "justify-end" : "justify-start"
                   }`}
                 >
                   <div
