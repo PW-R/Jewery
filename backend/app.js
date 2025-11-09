@@ -42,7 +42,7 @@ export const initDB = async () => {
       lastName: "User",
       email: adminEmail,
       password: hashed,
-      role: "admin",
+      role: "speradmin",
     });
   }
 };
