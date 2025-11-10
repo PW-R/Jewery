@@ -5,7 +5,6 @@ import {
   getChatsByAdmin,
   getChatByCustomer,
   getAllChats,
-  closeChat,
   acceptChat,
 } from "../controllers/chatController.js";
 
@@ -28,7 +27,6 @@ router.get("/", getAllChats);
 // แอดมินรับแชท (assign)
 router.put("/accept/:chatId", acceptChat);  
 
-// ปิดการสนทนา (optional)
-router.put("/close/:chatId", closeChat);
+
 
 export default router;
