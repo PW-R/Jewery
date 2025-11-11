@@ -30,7 +30,7 @@ function Navbar({ isLoggedIn, setIsLoggedIn }) {
     const userId = localStorage.getItem("userId");
     if (!token || !userId) return;
 
-    fetch(`http://localhost:5000/api/users/${userId}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -219,7 +219,7 @@ function LoginForm({ setIsLoggedIn, setIsUserPanelOpen }) {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/users/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -302,7 +302,7 @@ function RegisterForm({ setIsLoggedIn, setIsUserPanelOpen,setActiveTab }) {
     setErrorMessage("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/register", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -31,8 +31,9 @@ export default function Home() {
         setLoading(true);
         const promises = categoryConfig.map(async ({ name, count }) => {
           const res = await fetch(
-            `http://localhost:5000/api/products/category/${name}`
+            `${import.meta.env.VITE_API_URL}/api/products/category/${name}`
           );
+
           const data = await res.json();
           const shuffled = data.sort(() => 0.5 - Math.random());
           return shuffled.slice(0, count);
@@ -90,7 +91,7 @@ export default function Home() {
             </h3>
             <p className="text-[#7d5f5f] text-sm">
               Have a question? Our friendly team is always ready to assist you
-              via chat. 
+              via chat.
             </p>
           </div>
 
@@ -105,7 +106,7 @@ export default function Home() {
             </h3>
             <p className="text-[#7d5f5f] text-sm">
               Each jewelry piece is handpicked with love — elegant, timeless,
-              and unique. 
+              and unique.
             </p>
           </div>
 
@@ -120,7 +121,7 @@ export default function Home() {
             </h3>
             <p className="text-[#7d5f5f] text-sm">
               Take a closer look at each piece before you decide — clear images
-              and full details await. 
+              and full details await.
             </p>
           </div>
         </div>

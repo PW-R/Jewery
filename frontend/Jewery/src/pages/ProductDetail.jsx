@@ -30,7 +30,9 @@ function ProductDetailPage() {
         setLoading(true);
 
         // Fetch main product
-        const res = await fetch(`http://localhost:5000/api/products/${productId}`);
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/products/${productId}`
+        );
         const data = await res.json();
 
         setProduct(data);
@@ -49,7 +51,9 @@ function ProductDetailPage() {
         // Fetch related products
         if (data.category) {
           const relatedRes = await fetch(
-            `http://localhost:5000/api/products?category=${encodeURIComponent(data.category)}`
+            `${
+              import.meta.env.VITE_API_URL
+            }/api/products?category=${encodeURIComponent(data.category)}`
           );
           const relatedData = await relatedRes.json();
           setRelated(relatedData.filter((p) => p._id !== data._id));
@@ -66,7 +70,9 @@ function ProductDetailPage() {
 
   if (loading)
     return (
-      <div className="text-center p-20 text-lg text-gray-500">Loading product...</div>
+      <div className="text-center p-20 text-lg text-gray-500">
+        Loading product...
+      </div>
     );
 
   // Stop rendering details if user is not authorized
@@ -80,7 +86,9 @@ function ProductDetailPage() {
             onClose={() => setToastMessage("")}
           />
         )}
-        <p className="text-lg text-gray-700">Please login to view this product.</p>
+        <p className="text-lg text-gray-700">
+          Please login to view this product.
+        </p>
       </div>
     );
   }
@@ -117,7 +125,9 @@ function ProductDetailPage() {
                   src={img}
                   alt={`Thumbnail ${idx}`}
                   className={`w-24 h-24 object-cover rounded-lg cursor-pointer border-2 transition ${
-                    selectedImage === img ? "border-[#B87A7D]" : "border-gray-300"
+                    selectedImage === img
+                      ? "border-[#B87A7D]"
+                      : "border-gray-300"
                   }`}
                   onClick={() => setSelectedImage(img)}
                 />
@@ -128,13 +138,25 @@ function ProductDetailPage() {
 
         {/* Product Info */}
         <div className="flex flex-col justify-start space-y-6">
-          <h1 className="text-5xl font-extrabold text-[#B87A7D]">{product.name}</h1>
-          <p className="text-3xl font-bold text-gray-900">${product.price?.toFixed(2)}</p>
-          <p className="text-gray-600 text-lg leading-relaxed">{product.description}</p>
+          <h1 className="text-5xl font-extrabold text-[#B87A7D]">
+            {product.name}
+          </h1>
+          <p className="text-3xl font-bold text-gray-900">
+            ${product.price?.toFixed(2)}
+          </p>
+          <p className="text-gray-600 text-lg leading-relaxed">
+            {product.description}
+          </p>
 
           {product.stock !== undefined && (
-            <p className={`text-sm font-semibold ${product.stock > 0 ? "text-green-500" : "text-red-500"}`}>
-              {product.stock > 0 ? `In Stock: ${product.stock}` : "Out of Stock"}
+            <p
+              className={`text-sm font-semibold ${
+                product.stock > 0 ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {product.stock > 0
+                ? `In Stock: ${product.stock}`
+                : "Out of Stock"}
             </p>
           )}
 
@@ -149,7 +171,9 @@ function ProductDetailPage() {
       {/* Related Products */}
       {related.length > 0 && (
         <div>
-          <h2 className="text-3xl font-bold text-[#B87A7D] mb-6">More in {product.category}</h2>
+          <h2 className="text-3xl font-bold text-[#B87A7D] mb-6">
+            More in {product.category}
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {related.map((item) => (
               <Link
@@ -158,13 +182,20 @@ function ProductDetailPage() {
                 className="bg-white rounded-2xl shadow-lg overflow-hidden hover:scale-105 transform transition cursor-pointer"
               >
                 <img
-                  src={item.images?.[0] || "https://res.cloudinary.com/dnd6qbufm/image/upload/v1730569000/jewelry_products/no-image.png"}
+                  src={
+                    item.images?.[0] ||
+                    "https://res.cloudinary.com/dnd6qbufm/image/upload/v1730569000/jewelry_products/no-image.png"
+                  }
                   alt={item.name}
                   className="w-full h-64 object-cover"
                 />
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg text-[#B87A7D]">{item.name}</h3>
-                  <p className="text-gray-500 mt-1">${item.price?.toFixed(2)}</p>
+                  <h3 className="font-semibold text-lg text-[#B87A7D]">
+                    {item.name}
+                  </h3>
+                  <p className="text-gray-500 mt-1">
+                    ${item.price?.toFixed(2)}
+                  </p>
                 </div>
               </Link>
             ))}

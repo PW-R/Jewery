@@ -1,7 +1,8 @@
 // src/api/chatApi.js
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/chats";
+// ✅ Use environment variable for flexibility
+const API_URL = `${import.meta.env.VITE_API_URL}/api/chats`;
 
 // ===== ลูกค้าส่งข้อความ =====
 export const sendCustomerMessage = async (customerId, message) => {
@@ -29,7 +30,7 @@ export const getChatByCustomer = async (customerId) => {
 
 // ===== ดึงแชททั้งหมด (ถ้าต้องการ) =====
 export const getAllChats = async () => {
-  const res = await axios.get(`${API_URL}`);
+  const res = await axios.get(API_URL);
   return res.data;
 };
 
@@ -39,8 +40,7 @@ export const closeChat = async (chatId) => {
   return res.data;
 };
 
-
-// pending changes to other files
+// ===== ยอมรับแชท (pending changes to other files) =====
 export const acceptChat = async (chatId, adminId) => {
   const res = await axios.put(`${API_URL}/accept/${chatId}`, { adminId });
   return res.data;
