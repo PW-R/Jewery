@@ -2,6 +2,7 @@
 import Chat from "../models/Chat.js";
 
 // === สร้างหรืออัปเดตแชทของลูกค้า ===
+//--Chatbox
 export const sendCustomerMessage = async (req, res) => {
   try {
     const { customerId, message } = req.body;
@@ -24,6 +25,7 @@ export const sendCustomerMessage = async (req, res) => {
 };
 
 // === แอดมินตอบกลับลูกค้า ===
+//---AdminChatPanel
 export const adminReply = async (req, res) => {
   try {
     const { chatId, adminId, message } = req.body;
@@ -51,6 +53,7 @@ export const adminReply = async (req, res) => {
 };
 
 // === ดึงแชททั้งหมดของแอดมินคนนั้น ===
+//---AdminChatPanel
 export const getChatsByAdmin = async (req, res) => {
   try {
     const { adminId } = req.params;
@@ -65,6 +68,7 @@ export const getChatsByAdmin = async (req, res) => {
 };
 
 // === ดึงแชทของลูกค้าคนเดียว ===
+//--Chatbox
 export const getChatByCustomer = async (req, res) => {
   try {
     const { customerId } = req.params;
@@ -78,7 +82,8 @@ export const getChatByCustomer = async (req, res) => {
   }
 };
 
-// === ดึงแชททั้งหมด (เฉพาะ admin เท่านั้น) ===
+// === ดึงแชททั้งหมด (เฉพาะ admin//Superadmin เท่านั้น) ===
+//--AdminPendingChats
 export const getAllChats = async (req, res) => {
   try {
     const chats = await Chat.find()
@@ -91,23 +96,9 @@ export const getAllChats = async (req, res) => {
   }
 };
 
-// === ปิดการสนทนา (mark resolved) ===
-export const closeChat = async (req, res) => {
-  try {
-    const { chatId } = req.params;
-    const chat = await Chat.findById(chatId);
-    if (!chat) return res.status(404).json({ message: "Chat not found" });
 
-    chat.isResolved = true;
-    await chat.save();
-
-    res.status(200).json({ message: "Chat closed successfully", chat });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-// pending changes to other files
+// รับลูกค้าและป้องกกันการรับซ้ำ
+///-----AdminPendingChats
 export const acceptChat = async (req, res) => {
   try {
     const { chatId } = req.params;

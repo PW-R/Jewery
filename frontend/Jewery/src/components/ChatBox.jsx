@@ -14,12 +14,12 @@ function CustomerChatBox() {
   const [isWaiting, setIsWaiting] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // ✅ scroll อัตโนมัติทุกครั้งที่มีข้อความใหม่
+  // scroll อัตโนมัติทุกครั้งที่มีข้อความใหม่
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ✅ เข้าห้องแค่ครั้งเดียว (ไม่ผูกกับ isOpen)
+  // เข้าห้องแค่ครั้งเดียว (ไม่ผูกกับ isOpen)
   useEffect(() => {
     if (!customerId) return;
 
@@ -33,7 +33,7 @@ function CustomerChatBox() {
     };
   }, [customerId]);
 
-  // ✅ โหลดประวัติแชททันทีหลัง login (ไม่ต้องเปิดกล่อง)
+  // โหลดประวัติแชททันทีหลัง login (ไม่ต้องเปิดกล่อง)
   useEffect(() => {
     if (!customerId) return;
 
@@ -55,7 +55,7 @@ function CustomerChatBox() {
     loadHistory();
   }, [customerId]);
 
-  // ✅ ฟังข้อความใหม่ (ตลอดเวลา ไม่ต้องรอเปิดกล่อง)
+  //ฟังข้อความใหม่ (ตลอดเวลา ไม่ต้องรอเปิดกล่อง)
   useEffect(() => {
     if (!customerId) return;
 
@@ -67,7 +67,7 @@ function CustomerChatBox() {
           last?.sender === newMsg.sender &&
           Math.abs(new Date(newMsg.timestamp) - new Date(last.timestamp)) < 1000
         ) {
-          return prev; // ✅ กันซ้ำภายใน 1 วิ
+          return prev; //กันซ้ำภายใน 1 วิ
         }
         return [...prev, newMsg];
       });
