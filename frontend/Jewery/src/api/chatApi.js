@@ -39,8 +39,13 @@ export const getAllChats = async () => {
   return res.data;
 };
 
-// pending changes to other files
-//-----AdminPendingChats
+// ===== ปิดการสนทนา =====
+export const closeChat = async (chatId) => {
+  const res = await axios.put(`${API_URL}/close/${chatId}`);
+  return res.data;
+};
+
+// ===== ยอมรับแชท (pending changes to other files) =====
 export const acceptChat = async (chatId, adminId) => {
   const res = await axios.put(`${API_URL}/accept/${chatId}`, { adminId });
   return res.data;
