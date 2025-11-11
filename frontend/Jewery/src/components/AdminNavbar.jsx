@@ -16,7 +16,7 @@ function AdminNavbar({ setIsLoggedIn }) {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     setIsLoggedIn(false);
-    navigate("/"); // Back to Home
+    navigate("/Home"); // Back to Home
   };
 
   const menuItems = [
