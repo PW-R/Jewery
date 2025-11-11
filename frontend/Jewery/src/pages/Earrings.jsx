@@ -11,7 +11,7 @@ function EarringsPage() {
 ;
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/products?category=${category}`)
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products?category=${category}`)
       .then((res) => res.json())
       .then((data) => {
         setProducts(data); // or data.products

@@ -3,7 +3,7 @@ import { FaTimes, FaCommentDots } from "react-icons/fa";
 import io from "socket.io-client";
 import { sendCustomerMessage, getChatByCustomer } from "../api/chatApi";
 
-const socket = io("http://localhost:5000");
+const socket = io(import.meta.env.VITE_API_URL);
 
 function CustomerChatBox() {
   const customerId = localStorage.getItem("userId");

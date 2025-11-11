@@ -1,9 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { getChatsByAdmin, adminReply } from "../api/chatApi";
 import { FaTimes, FaPaperPlane, FaComments } from "react-icons/fa";
-import io from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+import { io } from "socket.io-client";
+const socket = io(import.meta.env.VITE_API_URL, {
+  transports: ["websocket", "polling"],
+});
+
 
 function AdminChatPanel() {
   const [chats, setChats] = useState([]);

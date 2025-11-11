@@ -120,10 +120,14 @@ const AdminStock = () => {
       if (!window.confirm("Delete this image from Cloudinary?")) return;
       try {
         const token = localStorage.getItem("token");
-        await axios.delete("http://localhost:5000/api/products/image", {
-          headers: { Authorization: `Bearer ${token}` },
-          data: { url: imageUrl },
-        });
+        await axios.delete(
+          `${import.meta.env.VITE_BACKEND_URL}/api/products/image`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            data: { url: imageUrl },
+          }
+        );
+
         setImagePreview((prev) => prev.filter((_, i) => i !== idx));
       } catch (err) {
         console.error("Error deleting image:", err);
