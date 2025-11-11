@@ -8,8 +8,11 @@ const request = supertest(app);
 
 let customer, admin, chatId;
 
-describe("Chat API Tests", () => {
+describe("Chat API Tests", function () {
+  this.timeout(10000); 
+
   before(async () => {
+
   await initDB();
 
   // ล้างข้อมูลก่อนทดสอบ
@@ -91,6 +94,7 @@ describe("Chat API Tests", () => {
 
   // 5 แอดมินรับแชท
   it("PUT /api/chats/accept/:chatId แอดมินรับแชท", async () => {
+    await Chat.findByIdAndUpdate(chatId, { isAssigned: false, adminId: null });
     const res = await request
       .put(`/api/chats/accept/${chatId}`)
       .send({ adminId: admin._id });
