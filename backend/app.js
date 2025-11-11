@@ -38,11 +38,14 @@ export const initDB = async () => {
     await User.updateOne({ _id: admin._id }, { $set: { password: hashed } });
   } else {
     await User.create({
-      firstName: "Admin",
-      lastName: "User",
-      email: adminEmail,
-      password: hashed,
-      role: "speradmin",
+      title: "Mr.",
+  firstName: "Admin",
+  lastName: "User",
+  age: 30,
+  phone: "0000000000",
+  email: adminEmail,
+  password: hashed,
+  role: "superadmin",
     });
   }
 };

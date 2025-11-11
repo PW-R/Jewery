@@ -135,10 +135,21 @@ export const updateUser = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    // ค้นหาผู้ใช้จาก id ก่อน
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    // ป้องกันการลบ superadmin
+    if (user.role === "superadmin") {
+      return res.status(403).json({ message: "Cannot delete superadmin account" });
+    }
+    // ถ้าไม่ใช่ superadmin ก็ลบได้
     await User.findByIdAndDelete(id);
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: "User deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: err.message || 'Server error' });
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
+
