@@ -1,69 +1,135 @@
 # Jewelry Product Management & Customer Chat Web Application
 
-Web Application สำหรับนำเสนอสินค้าและข้อมูลร้านเครื่องประดับ พร้อมระบบ **Real-time Chat** สำหรับให้ลูกค้าติดต่อกับร้านค้าโดยตรง
+Web Application สำหรับร้านเครื่องประดับที่รวมระบบแสดงสินค้า ข้อมูลร้านค้า และระบบ **Real-time Customer Chat** ไว้ในเว็บไซต์เดียว
 
-พัฒนาเป็น **University Project** โดยพัฒนาด้วยตนเองตั้งแต่ Frontend, Backend, Database ไปจนถึงระบบจัดการสำหรับ Admin
+พัฒนาเป็น **University Project** โดยพัฒนาด้วยตนเองทั้ง Frontend, Backend, Database และระบบจัดการสำหรับ Admin
 
 ---
 
 ## Overview
 
-ระบบแบ่งออกเป็นส่วนของลูกค้าและระบบจัดการร้านค้า
+เว็บไซต์ถูกออกแบบให้เป็นช่องทางสำหรับลูกค้าในการดูข้อมูลร้านและสินค้า พร้อมสามารถติดต่อร้านค้าได้โดยตรงผ่านระบบ Chat
 
-### Customer
+### Customer Features
 
-* ดูข้อมูลและรายละเอียดของร้านเครื่องประดับ
-* ดูรายการสินค้าและรายละเอียดสินค้า
-* ดูสินค้าแยกตาม Category
-* ติดต่อร้านค้าผ่าน **Real-time Chat**
 * สมัครสมาชิก / Login
+* ดูข้อมูลและรายละเอียดของร้าน
+* ดูรายการสินค้าเครื่องประดับ
+* ดูรายละเอียดสินค้า
+* เลือกดูสินค้าตาม **Category**
+* ติดต่อร้านค้าผ่านระบบ **Real-time Chat**
 
-ระบบ Chat รองรับการสนทนาแบบ **1-on-1** ระหว่างลูกค้าและ Admin และ Admin สามารถดูแลหลาย Chat พร้อมกันได้
+ระบบ Chat เป็นการสื่อสารแบบ **1-on-1** ระหว่างลูกค้าและ Admin โดยใช้ WebSocket เพื่อให้ข้อความส่งถึงกันแบบ Real-time โดยไม่ต้อง Refresh หน้าเว็บ
 
 ---
 
-## Admin Dashboard
+## Admin System
 
-Admin สามารถจัดการข้อมูลของร้านและสินค้า รวมถึงติดตามกิจกรรมภายในระบบ
+ระบบ Admin ใช้สำหรับจัดการข้อมูลสินค้าและดูแลการติดต่อกับลูกค้า
 
-* เพิ่ม / แก้ไข / ลบสินค้า
-* จัดการ Product Categories
-* จัดการข้อมูลภายในระบบ
-* ดูและตอบ Customer Chat
-* ดู User Activity ผ่าน Dashboard
+### Product Management
 
-### Role-Based Access Control
+Admin สามารถ:
 
-| Role            | Access                                 |
-| --------------- | -------------------------------------- |
-| **Super Admin** | จัดการ Account และเข้าถึงระบบทั้งหมด   |
-| **Admin**       | จัดการสินค้าและฟังก์ชันที่ได้รับอนุญาต |
+* เพิ่มสินค้า
+* แก้ไขข้อมูลสินค้า
+* ลบสินค้า
+* จัดการ Product Category
+* จัดการรายละเอียดและข้อมูลของสินค้า
+
+### Customer Chat
+
+Admin สามารถดูและตอบ Chat จากลูกค้าแต่ละคนได้ โดยรองรับการเปิดดู **หลาย Conversation** ภายในระบบเดียว
+
+### Dashboard
+
+Admin Dashboard แสดงข้อมูลที่ช่วยติดตามการใช้งานเว็บไซต์ เช่น
+
+* User Activity
+* จำนวนผู้ใช้งาน
+* กิจกรรมภายในระบบ
+* ข้อมูลสินค้า
+
+---
+
+## Role-Based Access Control
+
+ระบบมีการกำหนดสิทธิ์ตาม Role เพื่อควบคุมการเข้าถึงฟังก์ชันต่าง ๆ
+
+| Role            | Access                                        |
+| --------------- | --------------------------------------------- |
+| **Super Admin** | จัดการ Account และเข้าถึงฟังก์ชันทั้งหมด      |
+| **Admin**       | จัดการสินค้า, Chat และฟังก์ชันที่ได้รับอนุญาต |
 
 ---
 
 ## Real-time Chat
 
-ระบบ Chat พัฒนาด้วย **WebSocket** เพื่อให้ข้อความสามารถส่งและแสดงผลแบบ Real-time โดยไม่ต้อง Refresh หน้าเว็บ
+ระบบ Chat พัฒนาด้วย **WebSocket** ทำให้สามารถส่งข้อมูลระหว่าง Client และ Server ได้แบบ Real-time
 
 ```text
-Customer ──────── WebSocket ──────── Admin
-    │                                  │
-    └────────── Real-time Chat ────────┘
+Customer
+    │
+    │ WebSocket
+    ▼
+ Backend Server
+    │
+    │ WebSocket
+    ▼
+   Admin
 ```
 
-Admin สามารถเปิดและจัดการการสนทนากับลูกค้าหลายคนได้จากระบบเดียว
+Admin หนึ่งคนสามารถดูแลและตอบกลับ Conversation จากลูกค้าหลายคนได้
 
 ---
 
 ## Tech Stack
 
-* **React + Vite** — Frontend
-* **Node.js** — Backend
+### Frontend
+
+* **React** — UI Development
+* **Vite** — Development & Build Tool
+* **Tailwind CSS** — Styling
+
+### Backend
+
+* **Node.js** — Backend Server
 * **WebSocket** — Real-time Communication
-* **MongoDB** — Database
+
+### Database
+
+* **MongoDB** — Application Database
 * **MongoDB Atlas** — Cloud Database
-* **Render** — Backend Deployment
-* **GitHub Pages** — Frontend Deployment
+
+### Deployment
+
+* **GitHub Pages** — Frontend
+* **Render** — Backend
+
+---
+
+## Architecture
+
+```text
+┌─────────────────────┐
+│     GitHub Pages    │
+│   React + Vite      │
+│    Tailwind CSS     │
+└──────────┬──────────┘
+           │
+           │ API / WebSocket
+           ▼
+┌─────────────────────┐
+│       Render        │
+│    Node.js Backend  │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│    MongoDB Atlas     │
+│      Database        │
+└─────────────────────┘
+```
 
 ---
 
@@ -71,24 +137,42 @@ Admin สามารถเปิดและจัดการการสน�
 
 ```text
 Frontend/
-├── components/
-├── pages/
-├── ...
-    
+├── public/
+├── src/
+├── index.html
+├── package.json
+├── tailwind.config.js
+└── vite.config.js
+
 Backend/
 ├── controllers/
 ├── models/
 ├── routes/
-├── ...
+└── ...
 ```
 
 ---
 
-## Deployment
+## Getting Started
 
-**Frontend:** GitHub Pages
-**Backend:** Render
-**Database:** MongoDB Atlas
+### Frontend
+
+```bash
+git clone <repository-url>
+cd <frontend-folder>
+npm install
+npm run dev
+```
+
+### Backend
+
+```bash
+cd <backend-folder>
+npm install
+npm run dev
+```
+
+> ต้องตั้งค่า Environment Variables สำหรับ Backend และ MongoDB Atlas ก่อนเริ่มใช้งาน
 
 ---
 
@@ -98,4 +182,4 @@ Backend/
 **รูปแบบ:** Full-stack Web Application
 **พัฒนา:** Developed Independently
 
-โปรเจคนี้จัดทำขึ้นเพื่อฝึกการพัฒนา Web Application ที่มีทั้งระบบจัดการข้อมูล, Authentication, Role-Based Access Control, Cloud Database และ Real-time Communication ผ่าน WebSocket
+โปรเจคนี้จัดทำขึ้นเพื่อฝึกการพัฒนา Full-stack Application ที่มีทั้ง **Authentication, CRUD, Role-Based Access Control, Cloud Database และ Real-time Communication** โดยใช้ WebSocket สำหรับระบบ Chat ระหว่างลูกค้าและร้านค้า
